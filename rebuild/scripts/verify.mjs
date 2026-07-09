@@ -65,6 +65,8 @@ for (const name of ['DuaVaktiSmallWidget', 'DuaVaktiMediumWidget', 'DuaVaktiLarg
   check(widgetPlugin.includes(`com.shaesdoes.duavakti.widget.${name}`), `${name} ana uygulama manifestine config plugin ile kayıtlı`);
 }
 check(widgetPlugin.includes('withAndroidManifest'), 'Widget manifest yapılandırması CNG config plugin kullanıyor');
+check(widgetPlugin.includes('withDangerousMod') && widgetPlugin.includes('copyDirectory'), 'Widget Android kaynakları uygulama modülüne kopyalanıyor');
+check(widgetPlugin.includes("'app',") && widgetPlugin.includes("'src',") && widgetPlugin.includes("'main',") && widgetPlugin.includes("'res',"), 'Widget kaynak hedefi android/app/src/main/res');
 
 const allowedLayouts = new Set(['LinearLayout', 'TextView']);
 for (const size of ['small', 'medium', 'large']) {

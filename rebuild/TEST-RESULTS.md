@@ -1,4 +1,4 @@
-# DuaVakti 1.1.1 Test Sonuçları
+# DuaVakti 1.1.2 Test Sonuçları
 
 Tarih: 10 Temmuz 2026
 
@@ -7,44 +7,33 @@ Tarih: 10 Temmuz 2026
 - Temiz bağımlılık kurulumu (`npm ci --include=dev`): PASS — 480 paket
 - TypeScript tam tip kontrolü: PASS
 - Mantık birim testleri: 16/16 PASS
-- Statik uygulama ve widget doğrulaması: 32/32 PASS
+- Statik uygulama ve widget doğrulaması: 34/34 PASS
 - Expo Android prebuild: PASS
 - Android JavaScript/Hermes export bundle: PASS — 622 modül
-- Oluşturulan AndroidManifest.xml içinde 3 widget receiver kaydı: PASS
-- Expo native autolinking içinde `duavakti-widget`: PASS
-- Expo native autolinking içinde `expo-audio`: PASS
-- Kilit dosyasında özel geliştirme ortamı npm adresi: 0 adet
-- Kilit dosyasında genel npm kayıt adresi: 400’den fazla paket girdisi
+- Ana uygulama manifestinde 3 widget receiver kaydı: PASS
+- `android/app/src/main/res/xml` içinde 3 widget provider XML'i: PASS
+- `android/app/src/main/res/layout` içinde 3 widget layout'u: PASS
+- Widget drawable kaynağı ana uygulama modülünde: PASS
+- Widget string kaynakları ana uygulama modülünde: PASS
+- Ana uygulamanın `strings.xml` dosyası korunuyor: PASS
 
-## Düzeltilen EAS Build hatası
+## EAS hatasına yönelik doğrulama
 
-1.1.0 paketindeki `package-lock.json`, geliştirme sırasında kullanılan özel npm kayıt adreslerini içeriyordu. EAS Build bu adreslere erişemediği için bağımlılık kurulumu `npm ci --include=dev` aşamasında `Exit handler never called!` hatasıyla durdu.
+EAS logundaki gerçek hata:
 
-1.1.1 sürümünde:
+`Execution failed for task ':app:processReleaseResources'`
 
-- tüm registry paket URL’leri `https://registry.npmjs.org` alanına taşındı;
-- aynı kilit dosyasıyla temiz `npm ci --include=dev` kurulumu yeniden çalıştırıldı ve geçti;
-- 1.1.0 ZIP paketinde yanlışlıkla eksik kalan Android widget kaynakları v1.0 kaynaklarından geri eklendi ve tekrar doğrulandı.
+AAPT tarafından bulunamayan ilk kaynak:
 
-## Özellik doğrulamaları
+`@xml/duavakti_widget_small_info`
 
-### Widget
+1.1.2 prebuild çıktısında aşağıdaki dosyalar doğrudan ana uygulama resource klasöründe doğrulandı:
 
-Doğrulanan sınıflar:
+- `android/app/src/main/res/xml/duavakti_widget_small_info.xml`
+- `android/app/src/main/res/xml/duavakti_widget_medium_info.xml`
+- `android/app/src/main/res/xml/duavakti_widget_large_info.xml`
 
-- `com.shaesdoes.duavakti.widget.DuaVaktiSmallWidget`
-- `com.shaesdoes.duavakti.widget.DuaVaktiMediumWidget`
-- `com.shaesdoes.duavakti.widget.DuaVaktiLargeWidget`
-
-Kaynak pakette Kotlin sınıfları, üç layout XML’i ve üç provider XML’i mevcuttur. Prebuild sonrası ana uygulama manifestinde üç receiver kaydı da doğrulandı.
-
-### Türkçe sure adları
-
-114 surenin Türkçe adı yerel veri tablosunda bulunuyor. Sure listesi, okuyucu başlığı, son okunan kartı ve arama Türkçe adları kullanıyor.
-
-### Sesli okuma
-
-Kur’an servisi Arapça metin, Diyanet meali ve Mişârî Râşid el-Afâsî ses verisini birlikte alıyor. Ayet kartlarında Dinle/Duraklat akışı statik olarak ve TypeScript ile doğrulandı.
+Manifest referansları da aynı adlarla doğrulandı.
 
 ## Çalıştırılan komutlar
 
@@ -53,9 +42,8 @@ npm ci --include=dev --no-audit --no-fund
 npm run test:all
 npx expo prebuild --platform android --clean --no-install
 CI=1 npx expo export --platform android
-npx expo-modules-autolinking resolve --platform android --json
 ```
 
 ## Sınırlama
 
-Son Android APK derlemesi bu ortamda değil, EAS Build üzerinde yapılmalıdır. Gerçek launcher’da widget görünürlüğü ve gerçek cihazda ses oynatma, yeni APK kurulduktan sonra cihaz üzerinde son kez doğrulanacaktır.
+Bu ortamda Android SDK/Gradle release APK derlemesi çalıştırılmadı. Son doğrulama EAS Build üzerinde yapılacaktır. Ancak önceki EAS hatasının eksik gördüğü üç `@xml` kaynağı artık prebuild sonrası ana uygulama modülünde fiziksel olarak mevcuttur.

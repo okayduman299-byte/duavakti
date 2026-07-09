@@ -1,19 +1,42 @@
-# DuaVakti 1.1.1
+# DuaVakti 1.1.2 — Sürüm Notları
 
-## Derleme ve widget paket düzeltmesi
+Tarih: 10 Temmuz 2026
 
-- 1.1.0 paketindeki `package-lock.json` dosyasında geliştirme ortamına özel npm kayıt adresleri bulunduğu için EAS `npm ci` aşamasında duruyordu. Tüm kilit dosyası adresleri genel npm kayıt adreslerine taşındı.
-- 1.1.0 ZIP paketine yanlışlıkla girmeyen Android widget kaynakları geri eklendi.
-- Küçük, orta ve büyük widget sınıfları, düzenleri ve provider XML dosyaları pakette tekrar mevcut.
-- Paket temiz `npm ci --include=dev`, tam TypeScript kontrolü, 16 mantık testi, statik widget doğrulaması, Expo Android prebuild ve Android export ile yeniden doğrulandı.
+## Düzeltilen EAS Build hatası
 
-## 1.1 özellikleri
+1.1.1 sürümündeki EAS Android build'i `:app:processReleaseResources` aşamasında duruyordu. Gradle/AAPT hatası, ana uygulama manifestinin şu kaynakları bulamadığını gösterdi:
 
-- Widget: küçük, orta ve büyük Android ana ekran widgetları.
-- Kur’an: 114 Türkçe sure adı ve Türkçe adlarla arama.
-- Ses: ayet bazında Dinle/Duraklat.
+- `@xml/duavakti_widget_small_info`
+- `@xml/duavakti_widget_medium_info`
+- `@xml/duavakti_widget_large_info`
 
-## Sürüm
+Kök neden: Widget provider XML dosyaları yerel Expo modülünün Android resource klasöründe bulunuyordu, ancak config plugin receiver kayıtlarını doğrudan ana uygulama manifestine ekliyordu. AAPT, bu manifest referanslarını ana uygulama modülünün resource alanında çözemedi.
 
-- Uygulama: 1.1.1
-- Android versionCode: 3
+## 1.1.2 düzeltmesi
+
+`withDuaVaktiWidgets` config plugin'i artık Expo prebuild sırasında widget Android kaynaklarını şu hedefe de kopyalar:
+
+`android/app/src/main/res`
+
+Kopyalanan kaynaklar:
+
+- üç provider XML dosyası;
+- üç widget layout XML dosyası;
+- widget arka plan drawable dosyası;
+- widget açıklama string kaynakları.
+
+Yerel modüldeki kaynaklar korunur. Böylece Kotlin widget sınıfları kendi `R` sınıfıyla derlenmeye devam ederken ana uygulama manifestindeki `@xml/...` referansları da AAPT tarafından bulunabilir.
+
+Ayrıca widget string kaynakları `duavakti_widget_strings.xml` dosyasına ayrıldı; böylece ana uygulamanın `strings.xml` dosyası ezilmez.
+
+## Sürüm bilgisi
+
+- Uygulama sürümü: 1.1.2
+- Android versionCode: 4
+
+## Korunan özellikler
+
+- Türkçe 114 sure adı
+- Diyanet Türkçe meal
+- Ayet bazlı sesli dinleme / duraklatma
+- Küçük, orta ve büyük Android ana ekran widgetları
