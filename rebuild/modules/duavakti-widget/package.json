@@ -1,0 +1,11 @@
+{
+  "name": "duavakti-widget",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "private": true,
+  "peerDependencies": {
+    "expo": "*",
+    "react-native": "*",
+    "expo-modules-core": "*"
+  }
+}

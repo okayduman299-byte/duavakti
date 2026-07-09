@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "outDir": ".test-build",
+    "rootDir": "."
+  },
+  "include": [
+    "src/lib/prayer.ts",
+    "src/lib/quran.ts",
+    "src/lib/time.ts",
+    "src/types.ts",
+    "tests/**/*.ts",
+    "types/node-test.d.ts"
+  ]
+}

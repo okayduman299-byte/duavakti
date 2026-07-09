@@ -1,0 +1,157 @@
+
+> duavakti-rebuild@1.0.0 test:offline
+> npm run typecheck:offline && npm run test:logic && npm run verify
+
+
+> duavakti-rebuild@1.0.0 typecheck:offline
+> tsc -p tsconfig.offline.json
+
+
+> duavakti-rebuild@1.0.0 test:logic
+> tsc -p tsconfig.test.json && node --test .test-build/tests/*.test.js
+
+TAP version 13
+# Subtest: cleanPrayerTime API eklerini temizler
+ok 1 - cleanPrayerTime API eklerini temizler
+  ---
+  duration_ms: 0.877345
+  type: 'test'
+  ...
+# Subtest: normalizePrayerTimes gerekli beş vakti normalize eder
+ok 2 - normalizePrayerTimes gerekli beş vakti normalize eder
+  ---
+  duration_ms: 0.795271
+  type: 'test'
+  ...
+# Subtest: getNextPrayer gün içindeki sıradaki vakti bulur
+ok 3 - getNextPrayer gün içindeki sıradaki vakti bulur
+  ---
+  duration_ms: 1.192475
+  type: 'test'
+  ...
+# Subtest: getNextPrayer yatsıdan sonra ertesi gün sabaha döner
+ok 4 - getNextPrayer yatsıdan sonra ertesi gün sabaha döner
+  ---
+  duration_ms: 0.199661
+  type: 'test'
+  ...
+# Subtest: timeOnDate geçersiz saatleri reddeder
+ok 5 - timeOnDate geçersiz saatleri reddeder
+  ---
+  duration_ms: 0.196607
+  type: 'test'
+  ...
+# Subtest: prayerRows sıralamayı sabit tutar
+ok 6 - prayerRows sıralamayı sabit tutar
+  ---
+  duration_ms: 0.203667
+  type: 'test'
+  ...
+# Subtest: qiblaBearing sonucu 0-360 aralığındadır
+ok 7 - qiblaBearing sonucu 0-360 aralığındadır
+  ---
+  duration_ms: 2.006348
+  type: 'test'
+  ...
+# Subtest: parseSurahListPayload bozuk satırları atlar
+ok 8 - parseSurahListPayload bozuk satırları atlar
+  ---
+  duration_ms: 0.741369
+  type: 'test'
+  ...
+# Subtest: parseSurahListPayload geçersiz gövde için boş liste döner
+ok 9 - parseSurahListPayload geçersiz gövde için boş liste döner
+  ---
+  duration_ms: 0.462498
+  type: 'test'
+  ...
+# Subtest: parseSurahEditionsPayload Arapça ve meali ayet numarasına göre eşler
+ok 10 - parseSurahEditionsPayload Arapça ve meali ayet numarasına göre eşler
+  ---
+  duration_ms: 0.327585
+  type: 'test'
+  ...
+# Subtest: parseSurahEditionsPayload eksik veriyle çökmek yerine null döner
+ok 11 - parseSurahEditionsPayload eksik veriyle çökmek yerine null döner
+  ---
+  duration_ms: 0.120151
+  type: 'test'
+  ...
+# Subtest: Türkçe arama aksan ve büyük-küçük harfe dayanıklıdır
+ok 12 - Türkçe arama aksan ve büyük-küçük harfe dayanıklıdır
+  ---
+  duration_ms: 0.366793
+  type: 'test'
+  ...
+# Subtest: pad2 iki haneli çıktı üretir
+ok 13 - pad2 iki haneli çıktı üretir
+  ---
+  duration_ms: 0.746827
+  type: 'test'
+  ...
+# Subtest: tarih formatları beklenen servis biçimlerindedir
+ok 14 - tarih formatları beklenen servis biçimlerindedir
+  ---
+  duration_ms: 0.607382
+  type: 'test'
+  ...
+# Subtest: formatCountdown negatif süreyi sıfırda tutar
+ok 15 - formatCountdown negatif süreyi sıfırda tutar
+  ---
+  duration_ms: 0.194233
+  type: 'test'
+  ...
+# Subtest: dayIndex her zaman dizi aralığında kalır
+ok 16 - dayIndex her zaman dizi aralığında kalır
+  ---
+  duration_ms: 0.221795
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 126.592544
+
+> duavakti-rebuild@1.0.0 verify
+> node scripts/verify.mjs
+
+PASS 28
+  ✓ Gerekli kaynak dosyaları mevcut
+  ✓ Kök hata sınırı etkin
+  ✓ HomeScreen uygulamaya bağlı
+  ✓ QuranScreen uygulamaya bağlı
+  ✓ DuasScreen uygulamaya bağlı
+  ✓ WidgetScreen uygulamaya bağlı
+  ✓ SettingsScreen uygulamaya bağlı
+  ✓ Kur’an ağ/yükleme hataları yakalanıyor
+  ✓ Kur’an tekrar deneme akışı var
+  ✓ Son okunan sure saklanıyor
+  ✓ Liste ve okuyucu yükleme durumları ayrık
+  ✓ Kur’an servis uç noktası tanımlı
+  ✓ Diyanet Türkçe meal sürümü tanımlı
+  ✓ Kur’an çevrimdışı önbellek dönüşü var
+  ✓ Namaz vakti servis uç noktası tanımlı
+  ✓ Diyanet hesaplama yöntemi seçili
+  ✓ Namaz vakti çevrimdışı önbellek dönüşü var
+  ✓ DuaVaktiSmallWidget Android manifestine kayıtlı
+  ✓ DuaVaktiMediumWidget Android manifestine kayıtlı
+  ✓ DuaVaktiLargeWidget Android manifestine kayıtlı
+  ✓ Widget small yalnız destekli RemoteViews sınıflarını kullanıyor
+  ✓ Widget small kök tıklama ID'sine sahip
+  ✓ Widget medium yalnız destekli RemoteViews sınıflarını kullanıyor
+  ✓ Widget medium kök tıklama ID'sine sahip
+  ✓ Widget large yalnız destekli RemoteViews sınıflarını kullanıyor
+  ✓ Widget large kök tıklama ID'sine sahip
+  ✓ Widget boyutları sabit ve güvenli
+  ✓ Kaynakta TODO/FIXME kalmadı
+STATIC VERIFICATION: PASS
+
+RESOURCE VALIDATION
+JSON PASS 8/8
+XML PASS 9/9
+ANDROID RESOURCE ID PASS 15 IDs, 0 missing references
