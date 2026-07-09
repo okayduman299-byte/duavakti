@@ -2,6 +2,7 @@
   "expo": {
     "name": "DuaVakti",
     "slug": "duavakti",
+    "owner": "okayduman299",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -19,7 +20,10 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#080A0D"
       },
-      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"],
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
       "edgeToEdgeEnabled": true
     },
     "ios": {
@@ -33,6 +37,11 @@
           "locationWhenInUsePermission": "DuaVakti, namaz vakitlerini bulunduğun konuma göre göstermek için konumunu kullanır."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "b6ba130a-5c98-4a7b-b815-1a87526bf083"
+      }
+    }
   }
 }
