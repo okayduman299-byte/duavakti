@@ -20,7 +20,7 @@ jobs:
           rm -rf /tmp/duavakti-rebuild
           mkdir -p rebuild
           mkdir -p /tmp/duavakti-rebuild
-          unzip -q DUAVAKTI-REBUILD-v1.1.1.zip -d /tmp/duavakti-rebuild
+          unzip -q DUAVAKTI-REBUILD-v1.1.2.zip -d /tmp/duavakti-rebuild
           cp -R /tmp/duavakti-rebuild/DUAVAKTI-REBUILD/. rebuild/
 
       - name: Dosyalari GitHub'a kaydet
