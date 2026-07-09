@@ -1,21 +1,46 @@
 {
-  "cli": {
-    "version": ">= 16.0.0"
-  },
-  "build": {
-    "development": {
-      "developmentClient": true,
-      "distribution": "internal"
+  "expo": {
+    "name": "DuaVakti",
+    "slug": "duavakti",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#080A0D"
     },
-    "preview": {
-      "distribution": "internal",
-      "android": {
-        "image": "latest",
-        "buildType": "apk"
+    "assetBundlePatterns": ["**/*"],
+    "android": {
+      "package": "com.shaesdoes.duavakti",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#080A0D"
+      },
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
+      "edgeToEdgeEnabled": true
+    },
+    "ios": {
+      "bundleIdentifier": "com.shaesdoes.duavakti",
+      "supportsTablet": true
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "DuaVakti, namaz vakitlerini bulunduğun konuma göre göstermek için konumunu kullanır."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "b6ba130a-5c98-4a7b-b815-1a87526bf083"
       }
-    },
-    "production": {
-      "autoIncrement": true
     }
   }
 }
