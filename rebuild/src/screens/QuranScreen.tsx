@@ -8,12 +8,14 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import type { AppPreferences, SurahContent, SurahSummary } from '../types';
+import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
+import type { AppPreferences, AyahPair, SurahContent, SurahSummary } from '../types';
 import { loadSurah, loadSurahList } from '../lib/quranService';
 import { matchesSurah } from '../lib/quran';
+import { getTurkishRevelationType } from '../data/surahNames';
 import { readJson, writeJson } from '../lib/storage';
 import { ErrorState, LoadingState } from '../components/States';
-import { colors, radii, spacing } from '../theme';
+import { colors, radii } from '../theme';
 
 const LAST_READ_KEY = 'duavakti:quran:last-read:v1';
 
@@ -33,6 +35,20 @@ export function QuranScreen({
   const [error, setError] = useState<string | null>(null);
   const [source, setSource] = useState<'network' | 'cache' | null>(null);
   const [lastRead, setLastRead] = useState<number | null>(null);
+  const [activeAyah, setActiveAyah] = useState<number | null>(null);
+  const player = useAudioPlayer(null, { updateInterval: 500 });
+  const playerStatus = useAudioPlayerStatus(player);
+
+  useEffect(() => {
+    void setAudioModeAsync({ playsInSilentMode: true, interruptionMode: 'doNotMix' });
+    return () => {
+      player.pause();
+    };
+  }, [player]);
+
+  useEffect(() => {
+    if (playerStatus.didJustFinish) setActiveAyah(null);
+  }, [playerStatus.didJustFinish]);
 
   const fetchList = async () => {
     setListLoading(true);
@@ -54,6 +70,8 @@ export function QuranScreen({
   }, []);
 
   const openSurah = async (summary: SurahSummary) => {
+    player.pause();
+    setActiveAyah(null);
     setSelected(summary);
     setContent(null);
     setReaderLoading(true);
@@ -71,18 +89,31 @@ export function QuranScreen({
     }
   };
 
+  const toggleAyahAudio = (item: AyahPair) => {
+    if (!item.audio || !selected) return;
+    if (activeAyah === item.numberInSurah) {
+      if (playerStatus.playing) player.pause();
+      else player.play();
+      return;
+    }
+    player.pause();
+    player.replace(item.audio);
+    setActiveAyah(item.numberInSurah);
+    player.play();
+  };
+
   const filtered = useMemo(() => list.filter((item) => matchesSurah(item, query)), [list, query]);
 
   if (selected) {
     return (
       <View style={styles.root}>
         <View style={styles.readerHeader}>
-          <Pressable style={styles.backButton} onPress={() => { setSelected(null); setContent(null); setError(null); }}>
+          <Pressable style={styles.backButton} onPress={() => { player.pause(); setActiveAyah(null); setSelected(null); setContent(null); setError(null); }}>
             <Text style={styles.backText}>‹</Text>
           </Pressable>
           <View style={styles.readerTitleWrap}>
-            <Text style={styles.readerTitle}>{selected.number}. {selected.englishName}</Text>
-            <Text style={styles.readerSubtitle}>{selected.englishNameTranslation} · {selected.numberOfAyahs} ayet</Text>
+            <Text style={styles.readerTitle}>{selected.number}. {selected.turkishName || `${selected.number}. Sure`}</Text>
+            <Text style={styles.readerSubtitle}>{getTurkishRevelationType(selected.revelationType)} · {selected.numberOfAyahs} ayet</Text>
           </View>
           <View style={styles.fontControls}>
             <Pressable onPress={() => updatePreferences({ quranFontScale: Math.max(0.8, preferences.quranFontScale - 0.1) })} style={styles.fontButton}><Text style={styles.fontButtonText}>A−</Text></Pressable>
@@ -98,17 +129,31 @@ export function QuranScreen({
             contentContainerStyle={styles.ayahList}
             initialNumToRender={10}
             windowSize={7}
-            renderItem={({ item }) => (
-              <View style={styles.ayahCard}>
-                <View style={styles.ayahNumber}><Text style={styles.ayahNumberText}>{item.numberInSurah}</Text></View>
-                {preferences.arabicVisible ? (
-                  <Text style={[styles.arabic, { fontSize: 29 * preferences.quranFontScale, lineHeight: 54 * preferences.quranFontScale }]}>{item.arabic}</Text>
-                ) : null}
-                <View style={styles.ayahDivider} />
-                <Text style={[styles.translation, { fontSize: 16 * preferences.quranFontScale, lineHeight: 27 * preferences.quranFontScale }]}>{item.translation || 'Türkçe anlam yüklenemedi.'}</Text>
-              </View>
-            )}
-            ListHeaderComponent={source === 'cache' ? <Text style={styles.cacheNote}>Bu sure çevrimdışı önbellekten açıldı.</Text> : null}
+            renderItem={({ item }) => {
+              const isActive = activeAyah === item.numberInSurah;
+              const isPlaying = isActive && playerStatus.playing;
+              return (
+                <View style={styles.ayahCard}>
+                  <View style={styles.ayahTopRow}>
+                    <View style={styles.ayahNumber}><Text style={styles.ayahNumberText}>{item.numberInSurah}</Text></View>
+                    <Pressable
+                      disabled={!item.audio}
+                      onPress={() => toggleAyahAudio(item)}
+                      style={[styles.audioButton, !item.audio && styles.audioButtonDisabled, isActive && styles.audioButtonActive]}
+                    >
+                      <Text style={styles.audioButtonText}>{playerStatus.isBuffering && isActive ? '…' : isPlaying ? 'Duraklat' : 'Dinle'}</Text>
+                      <Text style={styles.audioIcon}>{isPlaying ? '❚❚' : '▶'}</Text>
+                    </Pressable>
+                  </View>
+                  {preferences.arabicVisible ? (
+                    <Text style={[styles.arabic, { fontSize: 29 * preferences.quranFontScale, lineHeight: 54 * preferences.quranFontScale }]}>{item.arabic}</Text>
+                  ) : null}
+                  <View style={styles.ayahDivider} />
+                  <Text style={[styles.translation, { fontSize: 16 * preferences.quranFontScale, lineHeight: 27 * preferences.quranFontScale }]}>{item.translation || 'Türkçe anlam yüklenemedi.'}</Text>
+                </View>
+              );
+            }}
+            ListHeaderComponent={source === 'cache' ? <Text style={styles.cacheNote}>Bu sure çevrimdışı önbellekten açıldı. Ses için internet gerekir.</Text> : null}
             ListFooterComponent={<View style={{ height: 120 }} />}
           />
         ) : null}
@@ -120,7 +165,7 @@ export function QuranScreen({
     <View style={styles.root}>
       <ScrollView contentContainerStyle={styles.headerContent} keyboardShouldPersistTaps="handled">
         <Text style={styles.eyebrow}>KUR’AN-I KERİM</Text>
-        <Text style={styles.title}>Oku, kaldığın yerden devam et.</Text>
+        <Text style={styles.title}>Oku, dinle, kaldığın yerden devam et.</Text>
         {lastRead ? (
           <Pressable
             style={styles.continueCard}
@@ -131,7 +176,7 @@ export function QuranScreen({
           >
             <View>
               <Text style={styles.continueEyebrow}>SON OKUNAN</Text>
-              <Text style={styles.continueTitle}>{list.find((item) => item.number === lastRead)?.englishName ?? `${lastRead}. sure`}</Text>
+              <Text style={styles.continueTitle}>{list.find((item) => item.number === lastRead)?.turkishName || `${lastRead}. sure`}</Text>
             </View>
             <Text style={styles.arrow}>→</Text>
           </Pressable>
@@ -158,8 +203,8 @@ export function QuranScreen({
             <Pressable style={styles.surahRow} onPress={() => void openSurah(item)}>
               <View style={styles.numberBadge}><Text style={styles.numberText}>{item.number}</Text></View>
               <View style={styles.surahInfo}>
-                <Text style={styles.surahName}>{item.englishName}</Text>
-                <Text style={styles.surahMeta}>{item.englishNameTranslation} · {item.numberOfAyahs} ayet</Text>
+                <Text style={styles.surahName}>{item.turkishName || `${item.number}. Sure`}</Text>
+                <Text style={styles.surahMeta}>{getTurkishRevelationType(item.revelationType)} · {item.numberOfAyahs} ayet</Text>
               </View>
               <Text style={styles.surahArabic}>{item.name}</Text>
             </Pressable>
@@ -205,8 +250,14 @@ const styles = StyleSheet.create({
   fontButtonText: { color: colors.text, fontWeight: '800', fontSize: 12 },
   ayahList: { padding: 16 },
   ayahCard: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radii.lg, padding: 20, marginBottom: 14 },
-  ayahNumber: { width: 34, height: 34, borderRadius: 12, backgroundColor: colors.accentSoft, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  ayahTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  ayahNumber: { width: 34, height: 34, borderRadius: 12, backgroundColor: colors.accentSoft, alignItems: 'center', justifyContent: 'center' },
   ayahNumberText: { color: colors.accent, fontWeight: '900' },
+  audioButton: { minWidth: 96, height: 38, paddingHorizontal: 12, borderRadius: 12, backgroundColor: colors.accentSoft, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  audioButtonActive: { borderWidth: 1, borderColor: colors.accent },
+  audioButtonDisabled: { opacity: 0.35 },
+  audioButtonText: { color: colors.text, fontSize: 12, fontWeight: '800' },
+  audioIcon: { color: colors.accent, fontSize: 12, fontWeight: '900' },
   arabic: { color: colors.text, textAlign: 'right', writingDirection: 'rtl' },
   ayahDivider: { height: 1, backgroundColor: colors.border, marginVertical: 18 },
   translation: { color: colors.text, opacity: 0.92 },

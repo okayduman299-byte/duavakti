@@ -1,98 +1,49 @@
-# DuaVakti 1.0.0 — Test Sonuçları
+# DuaVakti 1.1.0 Test Sonuçları
 
-Tarih: **9 Temmuz 2026**
+Tarih: 9 Temmuz 2026
 
 ## Sonuç özeti
 
-| Kontrol | Sonuç |
-|---|---:|
-| Offline TypeScript doğrulaması | PASS — 0 hata |
-| Mantık birim testleri | PASS — 16/16 |
-| Statik uygulama/widget doğrulaması | PASS — 28/28 |
-| JSON yapı doğrulaması | PASS — 8/8 |
-| Android XML parse doğrulaması | PASS — 9/9 |
-| Kotlin → Android resource ID eşleşmesi | PASS — 15 ID, 0 eksik |
-| ZIP bütünlük testi | PASS — sıkıştırılmış veride hata yok |
+- TypeScript tam tip kontrolü: PASS
+- Mantık birim testleri: 16/16 PASS
+- Statik uygulama ve widget doğrulaması: 32/32 PASS
+- Expo Android prebuild: PASS
+- Android JavaScript/Hermes export bundle: PASS
+- Oluşturulan AndroidManifest.xml içinde 3 widget receiver kaydı: PASS
+- Expo native autolinking içinde `duavakti-widget`: PASS
+- Expo native autolinking içinde `expo-audio`: PASS
 
-## 1. TypeScript
+## Düzeltilen üç konu
 
-Çalıştırılan komut:
+### 1. Widget görünürlüğü
 
-```bash
-tsc -p tsconfig.offline.json
+Eski sürümde widget receiver kayıtları yerel modül manifestine bağlıydı. 1.1.0 sürümünde küçük, orta ve büyük widget sağlayıcıları Expo config plugin ile doğrudan ana uygulamanın oluşturulan AndroidManifest.xml dosyasına ekleniyor.
+
+Prebuild sonrası doğrulanan sınıflar:
+
+- `com.shaesdoes.duavakti.widget.DuaVaktiSmallWidget`
+- `com.shaesdoes.duavakti.widget.DuaVaktiMediumWidget`
+- `com.shaesdoes.duavakti.widget.DuaVaktiLargeWidget`
+
+Gerçek launcher widget seçicisinde görünürlük, yeni APK telefona kurulduktan sonra cihaz üzerinde doğrulanmalıdır.
+
+### 2. Türkçe sure adları
+
+114 surenin Türkçe adı yerel veri tablosuna eklendi. Sure listesi, okuyucu başlığı, son okunan kartı ve arama Türkçe adları kullanıyor.
+
+### 3. Sesli okuma
+
+Kur’an servisi artık Arapça metin + Diyanet meali + Mişârî Râşid el-Afâsî ses verisini birlikte alıyor. Her ayet kartına Dinle/Duraklat düğmesi eklendi.
+
+## Çalıştırılan komutlar
+
+```text
+npm run test:all
+npx expo prebuild --platform android --clean --no-install
+npx expo export --platform android
+npx expo-modules-autolinking resolve --platform android --json
 ```
 
-Sonuç: **PASS — 0 hata**
+## Sınırlama
 
-Bu kontrol; uygulama girişini, bütün ekranları, hook'ları, servisleri, veri katmanını ve widget JavaScript köprüsünü kapsar. Test ortamında npm paketleri indirilemediği için React Native/Expo modülleri için yalnız derleme amaçlı offline tip stub'ları kullanılmıştır.
-
-## 2. Birim testleri — 16/16 PASS
-
-Test edilen başlıklar:
-
-- Namaz vakti metinlerini temizleme
-- Beş vakti normalize etme
-- Gün içindeki sıradaki vakti bulma
-- Yatsıdan sonra ertesi gün sabaha geçme
-- Geçersiz saatleri reddetme
-- Namaz vakti sırasını koruma
-- Kıble açısını geçerli aralıkta hesaplama
-- Sure listesindeki bozuk satırları güvenle atlama
-- Geçersiz Kur’an API gövdesinde boş sonuç
-- Arapça ve Türkçe ayetleri ayet numarasına göre eşleme
-- Eksik sure verisinde `null` dönüp çökmeme
-- Türkçe/aksan duyarsız sure arama
-- İki haneli sayı biçimleme
-- API ve cache tarih anahtarları
-- Negatif geri sayımı sıfırda tutma
-- Günlük kart indeksini güvenli aralıkta tutma
-
-Sonuç: **16 test, 16 geçti, 0 başarısız**
-
-## 3. Statik doğrulama — 28/28 PASS
-
-`node scripts/verify.mjs` ile kontrol edilenler:
-
-- Beş ana ekranın uygulamaya bağlı olması
-- Kök `ErrorBoundary`
-- Kur’an yükleme hatalarının `try/catch` ile yakalanması
-- Kur’an tekrar deneme akışı
-- Son okunan surenin saklanması
-- Liste ve okuyucu yükleme durumlarının ayrılması
-- Kur’an API ve Diyanet meal uç noktaları
-- Kur’an çevrimdışı cache dönüşü
-- Namaz vakti API ve Diyanet hesaplama yöntemi
-- Namaz vakti çevrimdışı cache dönüşü
-- Üç widget receiver kaydı
-- Üç widget layoutunda yalnız güvenli RemoteViews sınıfları
-- Her widgetta tıklanabilir kök ID
-- Sabit widget boyutları
-- Kaynakta kalmış görev/onarım işaretlerinin olmaması
-
-Sonuç: **28 kontrol, 28 geçti**
-
-## 4. Android kaynak doğrulaması
-
-- 8 JSON dosyasının tamamı parse edildi.
-- 9 Android XML dosyasının tamamı parse edildi.
-- Kotlin kodunda kullanılan 15 `R.id` kaydının tamamı layout kaynaklarında bulundu.
-
-Sonuç: **PASS**
-
-## Bu ortamda yapılamayan testler
-
-Bu çalışma ortamında:
-
-- Android SDK / `adb` / Gradle Android toolchain bulunmuyor.
-- npm bağımlılıkları ağdan indirilemiyor ve gerekli paketler local cache'de yok.
-
-Bu nedenle aşağıdaki testleri burada gerçekten çalıştırdığımı iddia etmiyorum:
-
-- `npm install` sonrası gerçek Expo TypeScript tipleriyle derleme
-- `npx expo prebuild --clean`
-- Android JavaScript production export
-- Gradle debug/release derlemesi
-- APK üretimi
-- Gerçek telefonda Kur’an sekmesi, GPS izni ve launcher widget yerleştirme testi
-
-Kaynak paket, bu son native doğrulamalar yerel Android ortamında yapılabilsin diye `README.md` içinde net build komutlarıyla hazırlanmıştır.
+Yerel Gradle release APK derlemesi denenmiştir; çalışma ortamı `services.gradle.org` adresine erişemediği için Gradle dağıtımı indirilememiştir. Bu nedenle son APK derlemesi EAS Build üzerinde yapılmalıdır.

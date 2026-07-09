@@ -24,7 +24,7 @@ export async function loadSurah(number: number): Promise<{ data: SurahContent; s
   const key = `${SURAH_PREFIX}${number}`;
   try {
     const payload = await fetchJson(
-      `https://api.alquran.cloud/v1/surah/${number}/editions/quran-uthmani,tr.diyanet`,
+      `https://api.alquran.cloud/v1/surah/${number}/editions/quran-uthmani,tr.diyanet,ar.alafasy`,
     );
     const data = parseSurahEditionsPayload(payload);
     if (!data) throw new Error('Sure verisi çözümlenemedi');

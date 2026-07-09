@@ -13,11 +13,12 @@ const fatiha: SurahSummary = {
   name: 'سُورَةُ ٱلْفَاتِحَةِ',
   englishName: 'Al-Faatiha',
   englishNameTranslation: 'The Opening',
+  turkishName: 'Fâtiha',
   numberOfAyahs: 7,
   revelationType: 'Meccan',
 };
 
-test('parseSurahListPayload bozuk satırları atlar', () => {
+test('parseSurahListPayload bozuk satırları atlar ve Türkçe adı ekler', () => {
   const result = parseSurahListPayload({
     data: [
       { ...fatiha },
@@ -27,6 +28,7 @@ test('parseSurahListPayload bozuk satırları atlar', () => {
   });
   assert.equal(result.length, 1);
   assert.equal(result[0].number, 1);
+  assert.equal(result[0].turkishName, 'Fâtiha');
 });
 
 test('parseSurahListPayload geçersiz gövde için boş liste döner', () => {
@@ -34,7 +36,7 @@ test('parseSurahListPayload geçersiz gövde için boş liste döner', () => {
   assert.deepEqual(parseSurahListPayload({ data: 'nope' }), []);
 });
 
-test('parseSurahEditionsPayload Arapça ve meali ayet numarasına göre eşler', () => {
+test('parseSurahEditionsPayload Arapça, meali ve sesi ayet numarasına göre eşler', () => {
   const parsed = parseSurahEditionsPayload({
     data: [
       {
@@ -54,12 +56,19 @@ test('parseSurahEditionsPayload Arapça ve meali ayet numarasına göre eşler',
           { numberInSurah: 1, text: 'Rahmân ve Rahîm olan Allah’ın adıyla.' },
         ],
       },
+      {
+        ayahs: [
+          { numberInSurah: 1, audio: 'https://cdn.example/1.mp3' },
+          { numberInSurah: 2, audio: 'https://cdn.example/2.mp3' },
+        ],
+      },
     ],
   });
 
   assert.ok(parsed);
   assert.equal(parsed.ayahs.length, 2);
   assert.equal(parsed.ayahs[0].translation, 'Rahmân ve Rahîm olan Allah’ın adıyla.');
+  assert.equal(parsed.ayahs[0].audio, 'https://cdn.example/1.mp3');
   assert.equal(parsed.ayahs[1].translation, 'Hamd Allah’a mahsustur.');
 });
 
@@ -70,7 +79,7 @@ test('parseSurahEditionsPayload eksik veriyle çökmek yerine null döner', () =
 
 test('Türkçe arama aksan ve büyük-küçük harfe dayanıklıdır', () => {
   assert.equal(normalizeSearch(' İKİNDİ '), 'ikindi');
-  assert.equal(matchesSurah(fatiha, 'faatiha'), true);
+  assert.equal(matchesSurah(fatiha, 'fatiha'), true);
   assert.equal(matchesSurah(fatiha, '1'), true);
   assert.equal(matchesSurah(fatiha, 'bakara'), false);
 });

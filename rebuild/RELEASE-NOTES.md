@@ -1,38 +1,15 @@
-# DuaVakti 1.0.0 — Release Notes
+# DuaVakti 1.1.0
 
-## Tam yeniden yazım
+## Düzeltilenler
 
-Önceki uygulamanın kaynak kodu kullanılmadı. Uygulama sıfırdan kuruldu.
+- Android ana ekran widget kayıtları artık Expo prebuild sırasında doğrudan ana uygulama manifestine ekleniyor.
+- Küçük, orta ve büyük widget sağlayıcıları tam sınıf adlarıyla kayıtlı; launcher widget seçicisinde görünmeleri hedeflendi.
+- 114 surenin adı Türkçe gösteriliyor ve Türkçe adlarla arama yapılabiliyor.
+- Her ayetin yanında `Dinle` düğmesi var; Mişârî Râşid el-Afâsî tilaveti internet üzerinden oynatılıyor.
+- Expo EAS proje bağlantısı ve mevcut Project ID pakete dahil edildi.
+- `preview` profili APK üretmeye devam ediyor.
 
-## Kur’an çökme sorununa karşı yapılan temel değişiklikler
+## Sürüm
 
-- Kur’an sekmesi bağımsız yükleme ve okuyucu durumlarına ayrıldı.
-- API cevabı doğrudan ekrana basılmıyor; önce güvenli parser'dan geçiyor.
-- Bozuk veya eksik satırlar uygulamayı kapatmak yerine atlanıyor.
-- Ağ ve parser hataları ekranda gösteriliyor.
-- Tekrar deneme düğmesi var.
-- Sure listesi ve her sure ayrı ayrı cache'leniyor.
-- Son okunan sure saklanıyor.
-- Beklenmeyen React hataları için kök ErrorBoundary var.
-
-## Yeni özellikler
-
-- Canlı sıradaki vakit geri sayımı
-- Şehir ve GPS modu
-- Çevrimdışı vakit cache'i
-- 114 sure listesi ve arama
-- Diyanet Türkçe meal
-- Ayet yazı boyutu
-- Arapça göster/gizle
-- Dua kütüphanesi
-- Kıble açısı
-- Küçük/orta/büyük Android widget
-- Uygulama açıldığında otomatik widget eşitleme
-
-## Durum
-
-Kaynak sürüm: **hazır**
-
-Offline test paketi: **PASS**
-
-Native Android/APK ve gerçek cihaz testi: **bu çalışma ortamında Android SDK ve npm ağı olmadığı için henüz çalıştırılmadı**
+- Uygulama: 1.1.0
+- Android versionCode: 2

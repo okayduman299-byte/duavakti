@@ -61,3 +61,9 @@ declare module 'expo-modules-core' {
 declare module 'expo' {
   export function registerRootComponent(component: any): void;
 }
+
+declare module 'expo-audio' {
+  export function useAudioPlayer(source?: any, options?: any): any;
+  export function useAudioPlayerStatus(player: any): any;
+  export function setAudioModeAsync(mode: any): Promise<void>;
+}

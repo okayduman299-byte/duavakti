@@ -23,6 +23,8 @@ const required = [
   'src/screens/DuasScreen.tsx',
   'src/screens/WidgetScreen.tsx',
   'src/screens/SettingsScreen.tsx',
+  'src/data/surahNames.ts',
+  'plugins/withDuaVaktiWidgets.js',
   'src/components/ErrorBoundary.tsx',
   'src/lib/prayerService.ts',
   'src/lib/quranService.ts',
@@ -44,10 +46,13 @@ check(quran.includes('try {') && quran.includes('catch (err)'), 'Kur’an ağ/y�
 check(quran.includes('ErrorState') && quran.includes('onRetry'), 'Kur’an tekrar deneme akışı var');
 check(quran.includes('LAST_READ_KEY') && quran.includes('writeJson'), 'Son okunan sure saklanıyor');
 check(quran.includes('readerLoading') && quran.includes('listLoading'), 'Liste ve okuyucu yükleme durumları ayrık');
+check(quran.includes('useAudioPlayer') && quran.includes('toggleAyahAudio'), 'Ayet sesli dinleme akışı bağlı');
+check(quran.includes('turkishName'), 'Kur’an ekranında Türkçe sure adları kullanılıyor');
 
 const quranService = read('src/lib/quranService.ts');
 check(quranService.includes('api.alquran.cloud/v1/surah'), 'Kur’an servis uç noktası tanımlı');
 check(quranService.includes("tr.diyanet"), 'Diyanet Türkçe meal sürümü tanımlı');
+check(quranService.includes("ar.alafasy"), 'Mişârî el-Afâsî sesli tilavet sürümü tanımlı');
 check(quranService.includes("source: 'cache'"), 'Kur’an çevrimdışı önbellek dönüşü var');
 
 const prayerService = read('src/lib/prayerService.ts');
@@ -55,10 +60,11 @@ check(prayerService.includes('api.aladhan.com/v1/timings'), 'Namaz vakti servis 
 check(prayerService.includes('method=13'), 'Diyanet hesaplama yöntemi seçili');
 check(prayerService.includes("source: 'cache'"), 'Namaz vakti çevrimdışı önbellek dönüşü var');
 
-const manifest = read('modules/duavakti-widget/android/src/main/AndroidManifest.xml');
+const widgetPlugin = read('plugins/withDuaVaktiWidgets.js');
 for (const name of ['DuaVaktiSmallWidget', 'DuaVaktiMediumWidget', 'DuaVaktiLargeWidget']) {
-  check(manifest.includes(name), `${name} Android manifestine kayıtlı`);
+  check(widgetPlugin.includes(`com.shaesdoes.duavakti.widget.${name}`), `${name} ana uygulama manifestine config plugin ile kayıtlı`);
 }
+check(widgetPlugin.includes('withAndroidManifest'), 'Widget manifest yapılandırması CNG config plugin kullanıyor');
 
 const allowedLayouts = new Set(['LinearLayout', 'TextView']);
 for (const size of ['small', 'medium', 'large']) {

@@ -40,6 +40,7 @@ export interface SurahSummary {
   name: string;
   englishName: string;
   englishNameTranslation: string;
+  turkishName: string;
   numberOfAyahs: number;
   revelationType: string;
 }
@@ -48,6 +49,7 @@ export interface AyahPair {
   numberInSurah: number;
   arabic: string;
   translation: string;
+  audio?: string;
 }
 
 export interface SurahContent {

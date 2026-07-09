@@ -1,4 +1,5 @@
 import type { AyahPair, SurahContent, SurahSummary } from '../types';
+import { getTurkishSurahName } from '../data/surahNames';
 
 interface EditionSurah {
   number?: unknown;
@@ -12,6 +13,7 @@ interface EditionSurah {
 interface EditionAyah {
   numberInSurah?: unknown;
   text?: unknown;
+  audio?: unknown;
 }
 
 function asText(value: unknown, fallback = ''): string {
@@ -40,6 +42,7 @@ export function parseSurahListPayload(payload: unknown): SurahSummary[] {
         name: asText(row.name, `Sure ${number}`),
         englishName: asText(row.englishName, `Surah ${number}`),
         englishNameTranslation: asText(row.englishNameTranslation),
+        turkishName: getTurkishSurahName(number),
         numberOfAyahs,
         revelationType: asText(row.revelationType),
       },
@@ -59,15 +62,24 @@ export function parseSurahEditionsPayload(payload: unknown): SurahContent | null
 
   const arabic = data[0] as EditionSurah;
   const translation = data[1] as EditionSurah;
+  const audioEdition = data[2] as EditionSurah | undefined;
   if (!arabic || !translation) return null;
 
   const arabicAyahs = parseAyahs(arabic.ayahs);
   const translationAyahs = parseAyahs(translation.ayahs);
+  const audioAyahs = parseAyahs(audioEdition?.ayahs);
   const translationByNumber = new Map<number, string>();
+  const audioByNumber = new Map<number, string>();
 
   for (const ayah of translationAyahs) {
     const number = asPositiveInt(ayah.numberInSurah);
     if (number) translationByNumber.set(number, asText(ayah.text));
+  }
+
+  for (const ayah of audioAyahs) {
+    const number = asPositiveInt(ayah.numberInSurah);
+    const audio = asText(ayah.audio);
+    if (number && audio) audioByNumber.set(number, audio);
   }
 
   const ayahs: AyahPair[] = arabicAyahs.flatMap((ayah): AyahPair[] => {
@@ -79,6 +91,7 @@ export function parseSurahEditionsPayload(payload: unknown): SurahContent | null
         numberInSurah,
         arabic: arabicText,
         translation: translationByNumber.get(numberInSurah) ?? '',
+        audio: audioByNumber.get(numberInSurah),
       },
     ];
   });
@@ -92,6 +105,7 @@ export function parseSurahEditionsPayload(payload: unknown): SurahContent | null
       name: asText(arabic.name, `Sure ${number}`),
       englishName: asText(arabic.englishName, `Surah ${number}`),
       englishNameTranslation: asText(arabic.englishNameTranslation),
+      turkishName: getTurkishSurahName(number),
       numberOfAyahs: ayahs.length,
       revelationType: asText(arabic.revelationType),
     },
@@ -111,7 +125,7 @@ export function matchesSurah(summary: SurahSummary, query: string): boolean {
   const needle = normalizeSearch(query);
   if (!needle) return true;
   const haystack = normalizeSearch(
-    `${summary.number} ${summary.name} ${summary.englishName} ${summary.englishNameTranslation}`,
+    `${summary.number} ${summary.name} ${summary.turkishName || getTurkishSurahName(summary.number)} ${summary.englishName} ${summary.englishNameTranslation}`,
   );
   return haystack.includes(needle);
 }
