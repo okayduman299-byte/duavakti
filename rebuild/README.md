@@ -1,14 +1,19 @@
-# DuaVakti 1.1.0
+# DuaVakti 1.1.1
 
 DuaVakti, namaz vakitleri, Kur’an okuma/dinleme, dualar ve Android ana ekran widgetları içeren Expo/React Native uygulamasıdır.
 
-## 1.1.0 yenilikleri
+## 1.1 özellikleri
 
-- Widget kayıt sistemi yeniden düzenlendi. Üç Android widget sağlayıcısı Expo prebuild sırasında ana uygulama manifestine ekleniyor.
-- 114 sure Türkçe adlarla gösteriliyor ve Türkçe adla aranabiliyor.
-- Her ayetin yanında sesli dinleme ve duraklatma düğmesi var.
-- Diyanet Türkçe meali korunuyor.
-- EAS Project ID ve mevcut Expo proje sahibi yapılandırmaya eklendi.
+- Üç Android ana ekran widgetı: küçük, orta ve büyük.
+- 114 sure Türkçe adlarla gösterilir ve Türkçe adla aranabilir.
+- Her ayetin yanında sesli dinleme ve duraklatma düğmesi vardır.
+- Diyanet Türkçe meali korunur.
+- EAS Project ID ve mevcut Expo proje sahibi yapılandırmada hazırdır.
+
+## 1.1.1 düzeltmesi
+
+- EAS Build bağımlılık kurulumu için `package-lock.json` yalnızca genel npm kayıt adreslerini kullanır.
+- 1.1.0 paketinde eksik kalan Android widget kaynakları pakete geri eklenmiştir.
 
 ## EAS Build
 
@@ -27,10 +32,10 @@ Build from GitHub ayarları:
 ## Doğrulama
 
 ```bash
-npm install
+npm ci --include=dev
 npm run test:all
 npx expo prebuild --platform android --clean --no-install
-npx expo export --platform android
+CI=1 npx expo export --platform android
 ```
 
 Ayrıntılar için `TEST-RESULTS.md` dosyasına bakın.

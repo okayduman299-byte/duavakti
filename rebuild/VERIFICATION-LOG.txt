@@ -1,6 +1,7 @@
-DUAVAKTI 1.1.0 VERIFICATION
-Date: 2026-07-09
+DUAVAKTI 1.1.1 VERIFICATION
+Date: 2026-07-10
 
+PASS Clean npm ci --include=dev (480 packages)
 PASS TypeScript typecheck
 PASS Logic tests 16/16
 PASS Static verification 32/32
@@ -9,7 +10,10 @@ PASS Android export bundle (622 modules, Hermes bundle produced)
 PASS Generated AndroidManifest contains Small widget receiver
 PASS Generated AndroidManifest contains Medium widget receiver
 PASS Generated AndroidManifest contains Large widget receiver
-PASS Expo autolinking resolves duavakti-widget 1.1.0
-PASS Expo autolinking resolves expo-audio 57.0.0
+PASS Expo autolinking resolves duavakti-widget
+PASS Expo autolinking resolves expo-audio
+PASS package-lock contains no private OpenAI development registry URLs
+PASS package-lock uses public npm registry URLs
+PASS Widget Kotlin/layout/provider source files present in release package
 
-LIMITATION Native Gradle assembleRelease could not download Gradle because the local environment has no access to services.gradle.org. Final binary must be produced by EAS Build.
+LIMITATION Final APK must be produced by EAS Build. Real-device widget picker and audio playback require device verification after installation.
