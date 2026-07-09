@@ -1,0 +1,37 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:id="@+id/widget_root"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:orientation="vertical"
+  android:gravity="center_vertical"
+  android:background="@drawable/widget_background"
+  android:padding="16dp">
+
+  <TextView
+    android:id="@+id/location"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="DuaVakti"
+    android:textColor="#8EC2A1"
+    android:textSize="11sp"
+    android:textStyle="bold" />
+
+  <TextView
+    android:id="@+id/next_prayer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="10dp"
+    android:text="Sıradaki"
+    android:textColor="#F2F0EA"
+    android:textSize="24sp"
+    android:textStyle="bold" />
+
+  <TextView
+    android:id="@+id/next_time"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="2dp"
+    android:text="--:--"
+    android:textColor="#858C89"
+    android:textSize="20sp" />
+</LinearLayout>

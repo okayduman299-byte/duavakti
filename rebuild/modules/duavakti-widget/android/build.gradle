@@ -1,0 +1,23 @@
+plugins {
+  id 'com.android.library'
+  id 'org.jetbrains.kotlin.android'
+}
+
+group = 'com.shaesdoes.duavakti.widget'
+version = '1.0.0'
+
+apply from: new File(project(":expo-modules-core").projectDir.absolutePath, "ExpoModulesCorePlugin.gradle")
+applyKotlinExpoModulesCorePlugin()
+useExpoPublishing()
+
+android {
+  namespace "com.shaesdoes.duavakti.widget"
+  defaultConfig {
+    minSdkVersion safeExtGet("minSdkVersion", 24)
+    targetSdkVersion safeExtGet("targetSdkVersion", 36)
+  }
+}
+
+dependencies {
+  implementation project(':expo-modules-core')
+}

@@ -1,0 +1,5 @@
+<resources>
+  <string name="widget_small_description">Sıradaki namaz vaktini gösterir</string>
+  <string name="widget_medium_description">Sıradaki vakti ve kalan süreyi gösterir</string>
+  <string name="widget_large_description">Günün tüm namaz vakitlerini gösterir</string>
+</resources>
