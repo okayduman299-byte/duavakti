@@ -4,6 +4,7 @@ import { colors, radii, spacing } from '../theme';
 
 interface Props {
   children: React.ReactNode;
+  resetKey?: string;
 }
 
 interface State {
@@ -17,6 +18,12 @@ export class ErrorBoundary extends React.Component<Props, State> {
     return { hasError: true };
   }
 
+  componentDidUpdate(prevProps: Props): void {
+    if (this.state.hasError && prevProps.resetKey !== this.props.resetKey) {
+      this.setState({ hasError: false });
+    }
+  }
+
   componentDidCatch(error: Error): void {
     console.error('DuaVakti UI error:', error);
   }
@@ -26,7 +33,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
     return (
       <View style={styles.root}>
         <Text style={styles.title}>Bu bölüm açılırken bir sorun oluştu.</Text>
-        <Text style={styles.text}>Uygulama kapanmadı. Bölümü güvenle yeniden başlatabilirsin.</Text>
+        <Text style={styles.text}>Diğer bölümler çalışmaya devam ediyor. Bu bölümü yeniden başlatabilirsin.</Text>
         <Pressable style={styles.button} onPress={() => this.setState({ hasError: false })}>
           <Text style={styles.buttonText}>Bölümü yeniden aç</Text>
         </Pressable>

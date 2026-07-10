@@ -5,4 +5,6 @@
   <string name="widget_small_description">Sıradaki namaz vaktini gösterir.</string>
   <string name="widget_medium_description">Sıradaki vakti ve kalan süreyi gösterir.</string>
   <string name="widget_large_description">Bugünün namaz vakitlerini gösterir.</string>
+  <string name="widget_dua_name">DuaVakti · Günün Duası</string>
+  <string name="widget_dua_description">Her gün değişen kısa bir dua ve anlamını gösterir.</string>
 </resources>

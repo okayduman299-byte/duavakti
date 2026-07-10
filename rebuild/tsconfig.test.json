@@ -13,6 +13,7 @@
     "src/lib/prayer.ts",
     "src/lib/quran.ts",
     "src/lib/time.ts",
+    "src/lib/dua.ts",
     "src/types.ts",
     "tests/**/*.ts",
     "types/node-test.d.ts"

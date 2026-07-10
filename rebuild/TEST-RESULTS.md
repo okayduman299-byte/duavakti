@@ -1,49 +1,46 @@
-# DuaVakti 1.2.0 FINAL — Test Sonuçları
+# DuaVakti 1.3.0 — Test Sonuçları
 
-## Temiz doğrulama özeti
+## Temiz paket doğrulaması
 
-- Genel npm kayıt adresiyle temiz `npm ci`: PASS — 478 paket
-- TypeScript: PASS
-- Mantık testleri: PASS — 16/16
-- Statik proje doğrulaması: PASS — 52/52
+Temiz kaynak kopyasında sıfırdan çalıştırıldı:
+
+- `npm ci --include=dev`: PASS — 478 paket
+- TypeScript `tsc --noEmit`: PASS
+- Mantık testleri: PASS — 19/19
+- Statik proje doğrulaması: PASS — 60/60
 - Expo Android prebuild: PASS
-- Expo Autolinking çözümlemesi: PASS
-- Prebuild/native modül doğrulaması: PASS — 13/13
-- Android Hermes/Metro export: PASS — 622 modül
-- XML parse doğrulaması: PASS — 9 dosya
-- Git takip simülasyonunda widget modülü: PASS — 17 dosya
-- Expo config çözümleme: PASS
-- Expo Doctor: 18/20 PASS; kalan 2 kontrol yalnız ağ erişimi olmadığı için Expo API/React Native Directory bağlantısı kuramadı
+- Expo Autolinking: PASS
+- Native/prebuild doğrulaması: PASS — 14/14
+- Android Hermes/Metro export: PASS — 623 modül
+- Android widget XML parse: PASS — 11 XML dosyası
+- Kotlin `R.id` → layout ID eşleşmesi: PASS — 18 referans, 0 eksik
+- Manifest `@xml` provider kaynak eşleşmesi: PASS
 
 ## Regresyon kontrolleri
 
-### Widget build mimarisi
+### Dualar ekranı
 
-- `modules/duavakti-widget/android/build.gradle` güncel `expo-module-gradle-plugin` kullanıyor.
-- Eski `ExpoModulesCorePlugin.gradle` yaklaşımı yok.
-- Elle `safeExtGet("compileSdkVersion", ...)` yok.
-- Expo SDK 57'nin kurulu module Gradle plugin'i `compileSdk/minSdk/targetSdk` değerlerini uygular.
-- Expo Autolinking yerel `duavakti-widget` paketini ve `DuaVaktiWidgetModule` sınıfını buluyor.
-- Modül manifestinde tam 3 AppWidget receiver var.
-- Küçük/orta/büyük provider XML kaynakları mevcut.
-- Widget layoutları yalnız RemoteViews destekli sınıfları kullanıyor.
+- İlk açılışta `FlatList` kullanılmıyor.
+- Sekme bazlı `ErrorBoundary` etkin.
+- Bölüm hatası alt navigasyonu kapatmıyor.
 
-### Kur’an
+### Dua widgetı
 
-- 114 Türkçe sure adı kaynakta mevcut.
-- Diyanet meal edition tanımlı.
-- Alafasy ses edition tanımlı.
-- Ayet audio URL eşleştirme testi PASS.
-- Türkçe arama aksan/büyük-küçük harf testi PASS.
-- Kur’an hata yakalama, tekrar deneme ve cache akışları statik doğrulandı.
+- 4 receiver manifestte kayıtlı.
+- Yeni `DuaVaktiDuaWidget` sınıfı mevcut.
+- `duavakti_widget_dua.xml` layoutı mevcut ve parse ediliyor.
+- `duavakti_widget_dua_info.xml` provider tanımı mevcut.
+- Native köprü dua listesini kaydediyor.
+- Widget günlük dua verisini okuyor.
 
-### Paket güvenilirliği
+### Kur’an otomatik okuma
 
-- `package-lock.json` içinde özel OpenAI/Artifactory npm adresi yok.
-- `expo-audio` için gereken `expo-asset` doğrudan kurulu.
-- Gereksiz `expo-dev-client` preview APK bağımlılığından çıkarıldı.
-- Widget modülü artık npm `file:` bağımlılığı değil; `modules/` üzerinden autolink edilir.
+- Expo Audio playlist API bağlı.
+- Suredeki sesli ayetler playlist içine ekleniyor.
+- Tek ayetten başlatma `skipTo` ile doğru sıraya geçiyor.
+- Playlist `loop: none` ile son ayette duruyor.
+- Tümünü dinle / duraklat / devam et / baştan dinle akışları kaynakta doğrulandı.
 
-## Gerçekçi sınır
+## Tam Gradle APK sınırı
 
-Bu çalışma ortamında Android SDK/Gradle dağıtımına ağ erişimi olmadığı için tam yerel `assembleRelease` çalıştırılamadı. Buna karşılık daha önce EAS'ta hata veren Gradle mimarisi tamamen kaldırıldı ve yerine Expo SDK 57'nin güncel resmi yerel modül yapısı kullanıldı. Prebuild ve autolinking aşamaları temiz şekilde doğrulandı.
+Yerel `./gradlew :app:assembleRelease` denemesi uygulama hatası nedeniyle değil, çalışma ortamının `services.gradle.org` adresini çözememesi nedeniyle başlayamadı (`UnknownHostException`). Bu yüzden son APK derlemesi EAS Build üzerinde yapılmalıdır.

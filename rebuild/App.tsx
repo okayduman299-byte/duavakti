@@ -12,6 +12,7 @@ import { WidgetScreen } from './src/screens/WidgetScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { colors } from './src/theme';
 import { prayerRows } from './src/lib/prayer';
+import { DUAS } from './src/data/duas';
 import { updateNativeWidgets } from './src/native/widget';
 import type { TabKey } from './src/types';
 
@@ -29,6 +30,7 @@ export default function App() {
       remaining: prayer.countdown,
       targetEpoch: prayer.next.target.getTime(),
       prayers: prayerRows(prayer.data.timings).map((row) => ({ label: row.label, time: row.time })),
+      duas: DUAS.map(({ title, meaning, source }) => ({ title, meaning, source })),
     });
   }, [prayer.data, prayer.next?.key, prayer.next?.target.getTime()]);
 
@@ -65,14 +67,14 @@ export default function App() {
   })();
 
   return (
-    <ErrorBoundary>
-      <View style={styles.root}>
+    <View style={styles.root}>
         <StatusBar barStyle="light-content" backgroundColor={colors.background} />
         <View style={styles.safeTop} />
-        <View style={styles.screen}>{ready ? screen : <LoadingState label="DuaVakti hazırlanıyor…" />}</View>
-        <BottomNav active={tab} onChange={setTab} />
+      <View style={styles.screen}>
+        {ready ? <ErrorBoundary key={tab} resetKey={tab}>{screen}</ErrorBoundary> : <LoadingState label="DuaVakti hazırlanıyor…" />}
       </View>
-    </ErrorBoundary>
+      <BottomNav active={tab} onChange={setTab} />
+    </View>
   );
 }
 

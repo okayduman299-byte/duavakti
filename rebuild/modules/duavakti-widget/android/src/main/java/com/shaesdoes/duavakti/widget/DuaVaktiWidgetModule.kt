@@ -31,6 +31,17 @@ class DuaVaktiWidgetModule : Module() {
       })
     }
 
+    val duas = JSONArray()
+    val rawDuas = payload["duas"] as? List<*> ?: emptyList<Any?>()
+    rawDuas.forEach { item ->
+      val row = item as? Map<*, *> ?: return@forEach
+      duas.put(JSONObject().apply {
+        put("title", row["title"]?.toString() ?: "")
+        put("meaning", row["meaning"]?.toString() ?: "")
+        put("source", row["source"]?.toString() ?: "")
+      })
+    }
+
     context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
       .putString("location", payload["location"]?.toString() ?: "Konum")
       .putString("nextPrayer", payload["nextPrayer"]?.toString() ?: "—")
@@ -38,6 +49,7 @@ class DuaVaktiWidgetModule : Module() {
       .putString("remaining", payload["remaining"]?.toString() ?: "--:--:--")
       .putLong("targetEpoch", (payload["targetEpoch"] as? Number)?.toLong() ?: 0L)
       .putString("prayers", prayers.toString())
+      .putString("duas", duas.toString())
       .apply()
   }
 
@@ -47,12 +59,14 @@ class DuaVaktiWidgetModule : Module() {
       DuaVaktiSmallWidget::class.java,
       DuaVaktiMediumWidget::class.java,
       DuaVaktiLargeWidget::class.java,
+      DuaVaktiDuaWidget::class.java,
     ).forEach { widgetClass ->
       val ids = manager.getAppWidgetIds(ComponentName(context, widgetClass))
       when (widgetClass) {
         DuaVaktiSmallWidget::class.java -> DuaVaktiSmallWidget().onUpdate(context, manager, ids)
         DuaVaktiMediumWidget::class.java -> DuaVaktiMediumWidget().onUpdate(context, manager, ids)
         DuaVaktiLargeWidget::class.java -> DuaVaktiLargeWidget().onUpdate(context, manager, ids)
+        DuaVaktiDuaWidget::class.java -> DuaVaktiDuaWidget().onUpdate(context, manager, ids)
       }
     }
   }

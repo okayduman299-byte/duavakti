@@ -38,14 +38,16 @@ const required = [
   'modules/duavakti-widget/android/src/main/res/layout/duavakti_widget_small.xml',
   'modules/duavakti-widget/android/src/main/res/layout/duavakti_widget_medium.xml',
   'modules/duavakti-widget/android/src/main/res/layout/duavakti_widget_large.xml',
+  'modules/duavakti-widget/android/src/main/res/layout/duavakti_widget_dua.xml',
   'modules/duavakti-widget/android/src/main/res/xml/duavakti_widget_small_info.xml',
   'modules/duavakti-widget/android/src/main/res/xml/duavakti_widget_medium_info.xml',
   'modules/duavakti-widget/android/src/main/res/xml/duavakti_widget_large_info.xml',
+  'modules/duavakti-widget/android/src/main/res/xml/duavakti_widget_dua_info.xml',
 ];
 check(required.every(exists), 'Gerekli kaynak dosyaları mevcut');
 
 const pkg = JSON.parse(read('package.json'));
-check(pkg.version === '1.2.0', 'Paket sürümü 1.2.0');
+check(pkg.version === '1.3.0', 'Paket sürümü 1.3.0');
 check(!('duavakti-widget' in (pkg.dependencies ?? {})), 'Yerel widget modülü npm file bağımlılığı değil');
 check(!('expo-dev-client' in (pkg.dependencies ?? {})), 'Preview APK gereksiz dev-client bağımlılığı taşımıyor');
 check(pkg.dependencies?.['expo-asset'] === '~57.0.3', 'expo-audio için gerekli expo-asset doğrudan kurulu');
@@ -54,14 +56,14 @@ const lock = read('package-lock.json');
 check(!/internal\.api\.openai\.org|applied-caas|artifactory\/api\/npm/i.test(lock), 'package-lock yalnız genel npm adreslerini kullanıyor');
 
 const appConfig = JSON.parse(read('app.json'));
-check(appConfig.expo?.version === '1.2.0', 'Expo uygulama sürümü 1.2.0');
-check(appConfig.expo?.android?.versionCode === 7, 'Android versionCode 7');
+check(appConfig.expo?.version === '1.3.0', 'Expo uygulama sürümü 1.3.0');
+check(appConfig.expo?.android?.versionCode === 8, 'Android versionCode 8');
 const plugins = appConfig.expo?.plugins ?? [];
 check(!plugins.some((entry) => entry === './plugins/withDuaVaktiWidgets'), 'Kırılgan widget config plugin kaldırıldı');
 check(plugins.some((entry) => Array.isArray(entry) && entry[0] === 'expo-audio'), 'expo-audio config plugin bağlı');
 
 const app = read('App.tsx');
-check(app.includes('<ErrorBoundary>'), 'Kök hata sınırı etkin');
+check(app.includes('resetKey={tab}') && app.includes('<ErrorBoundary key={tab}'), 'Sekme bazlı hata sınırı etkin');
 for (const screen of ['HomeScreen', 'QuranScreen', 'DuasScreen', 'WidgetScreen', 'SettingsScreen']) {
   check(app.includes(screen), `${screen} uygulamaya bağlı`);
 }
@@ -71,7 +73,8 @@ check(quran.includes('try {') && quran.includes('catch (err)'), 'Kur’an ağ/y�
 check(quran.includes('ErrorState') && quran.includes('onRetry'), 'Kur’an tekrar deneme akışı var');
 check(quran.includes('LAST_READ_KEY') && quran.includes('writeJson'), 'Son okunan sure saklanıyor');
 check(quran.includes('readerLoading') && quran.includes('listLoading'), 'Liste ve okuyucu yükleme durumları ayrık');
-check(quran.includes('useAudioPlayer') && quran.includes('toggleAyahAudio'), 'Ayet sesli dinleme akışı bağlı');
+check(quran.includes('useAudioPlaylist') && quran.includes('useAudioPlaylistStatus'), 'Kur’an kesintisiz ses çalma listesi bağlı');
+check(quran.includes('Tümünü dinle') && quran.includes('playlist.skipTo'), 'Sureyi baştan sona otomatik dinleme akışı var');
 check(quran.includes('turkishName'), 'Kur’an ekranında Türkçe sure adları kullanılıyor');
 
 const surahNames = read('src/data/surahNames.ts');
@@ -99,15 +102,15 @@ const moduleConfig = JSON.parse(read('modules/duavakti-widget/expo-module.config
 check(moduleConfig.android?.modules?.includes('com.shaesdoes.duavakti.widget.DuaVaktiWidgetModule'), 'Widget Expo modülü autolinking yapılandırmasında');
 
 const manifest = read('modules/duavakti-widget/android/src/main/AndroidManifest.xml');
-for (const name of ['DuaVaktiSmallWidget', 'DuaVaktiMediumWidget', 'DuaVaktiLargeWidget']) {
+for (const name of ['DuaVaktiSmallWidget', 'DuaVaktiMediumWidget', 'DuaVaktiLargeWidget', 'DuaVaktiDuaWidget']) {
   check(manifest.includes(`com.shaesdoes.duavakti.widget.${name}`), `${name} modül manifestinde kayıtlı`);
 }
-for (const resource of ['duavakti_widget_small_info', 'duavakti_widget_medium_info', 'duavakti_widget_large_info']) {
+for (const resource of ['duavakti_widget_small_info', 'duavakti_widget_medium_info', 'duavakti_widget_large_info', 'duavakti_widget_dua_info']) {
   check(manifest.includes(`@xml/${resource}`), `${resource} widget metadata kaynağı bağlı`);
 }
 
 const allowedLayouts = new Set(['LinearLayout', 'TextView']);
-for (const size of ['small', 'medium', 'large']) {
+for (const size of ['small', 'medium', 'large', 'dua']) {
   const rel = `modules/duavakti-widget/android/src/main/res/layout/duavakti_widget_${size}.xml`;
   const xml = read(rel);
   const tags = [...xml.matchAll(/<\/?([A-Za-z][A-Za-z0-9_.]*)\b/g)]
@@ -118,13 +121,18 @@ for (const size of ['small', 'medium', 'large']) {
   check(xml.includes('@+id/widget_root'), `Widget ${size} kök tıklama ID'sine sahip`);
 }
 
-const infoFiles = ['small', 'medium', 'large'].map((size) => `modules/duavakti-widget/android/src/main/res/xml/duavakti_widget_${size}_info.xml`);
-check(infoFiles.every((file) => read(file).includes('android:widgetCategory="home_screen"')), 'Üç widget da home_screen kategorisinde');
-check(infoFiles.every((file) => read(file).includes('android:initialLayout=')), 'Üç widget provider dosyasında initialLayout var');
+const infoFiles = ['small', 'medium', 'large', 'dua'].map((size) => `modules/duavakti-widget/android/src/main/res/xml/duavakti_widget_${size}_info.xml`);
+check(infoFiles.every((file) => read(file).includes('android:widgetCategory="home_screen"')), 'Dört widget da home_screen kategorisinde');
+check(infoFiles.every((file) => read(file).includes('android:initialLayout=')), 'Dört widget provider dosyasında initialLayout var');
 
 const nativeModule = read('modules/duavakti-widget/android/src/main/java/com/shaesdoes/duavakti/widget/DuaVaktiWidgetModule.kt');
 check(nativeModule.includes('Name("DuaVaktiWidget")'), 'Native widget köprüsü doğru modül adıyla kayıtlı');
 check(nativeModule.includes('updateAllWidgets(context)'), 'Widget güncelleme çağrısı native köprüde bağlı');
+check(nativeModule.includes('putString("duas"'), 'Dua listesi native widget verisine kaydediliyor');
+const duaWidget = read('modules/duavakti-widget/android/src/main/java/com/shaesdoes/duavakti/widget/DuaVaktiDuaWidget.kt');
+check(duaWidget.includes('data.dailyDua'), 'Günün duası widgetı günlük dua verisini gösteriyor');
+const duasScreen = read('src/screens/DuasScreen.tsx');
+check(!duasScreen.includes('FlatList'), 'Dualar ekranı ilk açılışta FlatList yaşam döngüsüne bağlı değil');
 
 const sourceFiles = [];
 function collect(dir) {

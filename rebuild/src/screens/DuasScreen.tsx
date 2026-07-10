@@ -1,17 +1,20 @@
-import React, { useMemo, useState } from 'react';
-import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { DUAS } from '../data/duas';
 import type { DuaItem } from '../types';
 import { colors, radii } from '../theme';
 
+const CATEGORIES = Array.from(new Set(DUAS.map((item) => item.category)));
+
 export function DuasScreen() {
   const [selected, setSelected] = useState<DuaItem | null>(null);
-  const categories = useMemo(() => Array.from(new Set(DUAS.map((item) => item.category))), []);
 
   if (selected) {
     return (
       <ScrollView style={styles.root} contentContainerStyle={styles.detailContent}>
-        <Pressable style={styles.back} onPress={() => setSelected(null)}><Text style={styles.backText}>‹ Dualar</Text></Pressable>
+        <Pressable style={styles.back} onPress={() => setSelected(null)}>
+          <Text style={styles.backText}>‹ Dualar</Text>
+        </Pressable>
         <Text style={styles.category}>{selected.category}</Text>
         <Text style={styles.detailTitle}>{selected.title}</Text>
         <View style={styles.detailCard}>
@@ -27,20 +30,22 @@ export function DuasScreen() {
   }
 
   return (
-    <View style={styles.root}>
+    <ScrollView style={styles.root} contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <Text style={styles.eyebrow}>DUALAR</Text>
         <Text style={styles.title}>İhtiyacın olan sözü yanında taşı.</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-          {categories.map((category) => <View key={category} style={styles.chip}><Text style={styles.chipText}>{category}</Text></View>)}
+          {CATEGORIES.map((category) => (
+            <View key={category} style={styles.chip}>
+              <Text style={styles.chipText}>{category}</Text>
+            </View>
+          ))}
         </ScrollView>
       </View>
-      <FlatList
-        data={DUAS}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <Pressable style={styles.row} onPress={() => setSelected(item)}>
+
+      <View style={styles.list}>
+        {DUAS.map((item) => (
+          <Pressable key={item.id} style={styles.row} onPress={() => setSelected(item)}>
             <View style={styles.moon}><Text style={styles.moonText}>☾</Text></View>
             <View style={styles.rowText}>
               <Text style={styles.rowCategory}>{item.category}</Text>
@@ -49,15 +54,16 @@ export function DuasScreen() {
             </View>
             <Text style={styles.arrow}>→</Text>
           </Pressable>
-        )}
-        ListFooterComponent={<View style={{ height: 120 }} />}
-      />
-    </View>
+        ))}
+      </View>
+      <View style={{ height: 120 }} />
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
+  content: { flexGrow: 1 },
   header: { paddingHorizontal: 28, paddingTop: 24 },
   eyebrow: { color: colors.accent, fontSize: 12, fontWeight: '900', letterSpacing: 2.2, marginBottom: 12 },
   title: { color: colors.text, fontSize: 34, lineHeight: 42, fontWeight: '900' },

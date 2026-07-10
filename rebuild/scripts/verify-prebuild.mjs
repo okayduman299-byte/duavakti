@@ -40,12 +40,13 @@ check(pluginSource.includes('compileSdkVersion", 36'), 'Kurulu Expo module plugi
 
 const androidManifest = read('modules/duavakti-widget/android/src/main/AndroidManifest.xml');
 const receiverCount = (androidManifest.match(/<receiver\b/g) ?? []).length;
-check(receiverCount === 3, 'Widget modül manifestinde tam 3 receiver var', `bulunan: ${receiverCount}`);
+check(receiverCount === 4, 'Widget modül manifestinde tam 4 receiver var', `bulunan: ${receiverCount}`);
 
 for (const rel of [
   'modules/duavakti-widget/android/src/main/res/xml/duavakti_widget_small_info.xml',
   'modules/duavakti-widget/android/src/main/res/xml/duavakti_widget_medium_info.xml',
   'modules/duavakti-widget/android/src/main/res/xml/duavakti_widget_large_info.xml',
+  'modules/duavakti-widget/android/src/main/res/xml/duavakti_widget_dua_info.xml',
 ]) {
   check(fs.existsSync(path.join(root, rel)), `${path.basename(rel)} mevcut`);
 }

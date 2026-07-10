@@ -1,6 +1,12 @@
 import { Platform } from 'react-native';
 import { requireNativeModule } from 'expo-modules-core';
 
+export interface WidgetDuaPayload {
+  title: string;
+  meaning: string;
+  source: string;
+}
+
 export interface WidgetPayload {
   location: string;
   nextPrayer: string;
@@ -8,6 +14,7 @@ export interface WidgetPayload {
   remaining: string;
   targetEpoch: number;
   prayers: Array<{ label: string; time: string }>;
+  duas: WidgetDuaPayload[];
 }
 
 interface DuaVaktiWidgetNativeModule {

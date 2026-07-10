@@ -1,38 +1,29 @@
-# DuaVakti 1.2.0 FINAL
+# DuaVakti 1.3.0 — Sürüm Notları
 
-## Neden yeni bir final sürüm hazırlandı?
+## Dualar
 
-Önceki EAS denemelerinde widget tarafında art arda üç ayrı native build sorunu görüldü:
+- İlk girişte görülen bölüm hata ekranını hedefleyen ekran mimarisi yenilendi.
+- Dualar listesi ilk açılışta daha basit ve kararlı bir render akışı kullanıyor.
+- Global hata sınırı yerine sekme bazlı hata sınırı kullanılıyor.
 
-1. App manifestinin referans verdiği widget XML kaynakları bulunamadı.
-2. Widget kaynak klasörü GitHub commit'ine girmedi.
-3. Yerel widget modülü `compileSdk` yapılandırmasını doğru şekilde alamadı.
+## Widget
 
-Bu sorunları tek tek yama yapmak yerine widget mimarisi baştan sadeleştirildi.
+- Yeni `DuaVakti · Günün Duası` widgetı eklendi.
+- Native modül artık dua listesini SharedPreferences içinde saklıyor.
+- Günün duası Android tarafında cihazın gün numarasına göre seçiliyor.
+- Widgetda dua başlığı, Türkçe anlamı ve kaynağı gösteriliyor.
+- Toplam widget receiver sayısı 4 oldu.
 
-## Temel düzeltme
+## Kur’an sesli tilavet
 
-Widget modülü artık Expo SDK 57'nin güncel yerel Expo Module şablonunu kullanır:
-
-- Android Gradle plugin: `expo-module-gradle-plugin`
-- Expo Autolinking: `modules/duavakti-widget`
-- Receiver kayıtları: modül `AndroidManifest.xml`
-- Widget layout/provider kaynakları: modül `android/src/main/res`
-- Eski kaynak kopyalama config plugin'i: kaldırıldı
-- Eski `ExpoModulesCorePlugin.gradle` yaklaşımı: kaldırıldı
-- Elle `compileSdkVersion safeExtGet(...)`: kaldırıldı
-
-Bu değişiklik, EAS logunda görülen `project ':duavakti-widget' does not specify compileSdk` hatasının kök sebebini ortadan kaldırır.
-
-## Kur’an tarafı
-
-- 114 Türkçe sure adı korunur.
-- Türkçe adlarla arama yapılır.
-- Diyanet Türkçe meal korunur.
-- `ar.alafasy` sesli tilavet akışı korunur.
-- `expo-audio` için gereken `expo-asset` doğrudan bağımlılık olarak eklendi.
+- `useAudioPlayer` tabanlı tek-ayetin-tek-sefer çalması kaldırıldı.
+- `useAudioPlaylist` ve `useAudioPlaylistStatus` ile sure bazlı çalma listesi kullanılıyor.
+- Ayetler otomatik olarak sıradaki ayete geçiyor.
+- `Tümünü dinle`, `Duraklat`, `Devam et`, `Baştan dinle` akışları eklendi.
+- Bir ayetten başlatıldığında kalan ayetler otomatik devam ediyor.
+- Aktif ayet vurgulanıyor ve liste oynayan ayete kayıyor.
 
 ## Sürüm
 
-- Uygulama: 1.2.0
-- Android versionCode: 7
+- Uygulama: 1.3.0
+- Android versionCode: 8

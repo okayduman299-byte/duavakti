@@ -1,28 +1,36 @@
-# DuaVakti 1.2.0 FINAL
+# DuaVakti 1.3.0
 
-DuaVakti; namaz vakitleri, Kur’an okuma ve ayet bazında sesli tilavet, dualar ve Android ana ekran widgetları içeren Expo/React Native uygulamasıdır.
+DuaVakti; namaz vakitleri, Kur’an-ı Kerim, Türkçe sure adları, Diyanet meali, kesintisiz sesli tilavet, dualar ve Android ana ekran widgetları içeren Expo/React Native uygulamasıdır.
 
-## Bu sürümde tamamlananlar
+## Bu sürümde düzeltilen 3 konu
 
-- 3 Android ana ekran widgetı: küçük, orta ve büyük.
-- 114 surenin tamamı Türkçe adlarla gösterilir ve Türkçe adla aranabilir.
-- Ayet bazında sesli tilavet ve duraklat/devam et akışı.
-- Diyanet Türkçe meali.
-- Son okunan sure ve çevrimdışı önbellek.
-- Namaz vakitleri, sıradaki vakit ve geri sayım.
-- Widget verisini uygulamadan native Android widgetlara aktaran Expo Module köprüsü.
+### 1. Dualar ekranı ilk açılış hatası
 
-## Kritik mimari düzeltme
+- Dualar ekranının ilk açılış yolu sadeleştirildi.
+- İlk yüklemede `FlatList` tabanlı yaşam döngüsü kaldırıldı ve güvenli `ScrollView` akışına geçirildi.
+- Hata sınırı artık sekme bazlı çalışır; bir bölümde hata olsa bile alt menü ve diğer bölümler kapanmaz.
+- Sekme değiştiğinde hata durumu temiz bir bileşenle yeniden başlar.
 
-Önceki sürümlerde widget Android modülü eski ve kırılgan bir Gradle yapılandırması kullanıyordu. 1.2.0 sürümünde modül, Expo SDK 57'nin güncel yerel modül yapısına geçirildi:
+### 2. Dua widgetı
 
-- `expo-module-gradle-plugin` kullanılır.
-- `compileSdk`, `minSdk` ve `targetSdk` değerleri Expo'nun kendi module Gradle plugin'i tarafından yönetilir.
-- Eski `ExpoModulesCorePlugin.gradle`, elle `safeExtGet(...)` ve kaynak kopyalayan özel config plugin kaldırıldı.
-- Widget receiver kayıtları ve kaynakları doğrudan native modülün Android manifesti/res klasöründe tutulur.
-- Yerel modül npm `file:` bağımlılığı değildir; Expo Autolinking tarafından `modules/` klasöründen bulunur.
+Uygulamada artık 4 Android widget bulunur:
 
-## EAS Build ayarları
+1. Küçük — sıradaki namaz vakti
+2. Orta — sıradaki vakit ve geri sayım
+3. Büyük — bugünün namaz vakitleri
+4. Günün Duası — her gün değişen dua, anlam ve kaynak
+
+Dua listesi native Android widget katmanına aktarılır. Widget, günün duasını cihazın gün bilgisine göre seçer ve uygulama açık değilken de widget güncellemelerinde aynı veriyi kullanır.
+
+### 3. Kur’an kesintisiz sesli okuma
+
+- Tek tek ayet oynatıcı yerine gerçek ses çalma listesi kullanılır.
+- `Tümünü dinle` düğmesi sureyi baştan sona otomatik ilerletir.
+- Bir ayetten `Buradan dinle` denirse o ayetten başlayıp sonraki ayetlere otomatik devam eder.
+- Oynayan ayet vurgulanır ve liste aktif ayete doğru kayar.
+- Duraklat, devam et ve bittikten sonra baştan dinle akışları vardır.
+
+## EAS Build
 
 GitHub deposunda kaynak klasörü `rebuild` ise Expo Project GitHub Settings içindeki Base directory:
 
@@ -38,14 +46,16 @@ Build from GitHub:
 
 `preview` profili APK üretir.
 
-## Yerel doğrulama komutları
+## Yerel doğrulama
 
 ```bash
 npm ci --include=dev
-npm run test:all
-npx expo prebuild --platform android --clean --no-install
+npm run typecheck
+npm run test:logic
+npm run verify
+npx expo prebuild --platform android --clean
 npm run verify:prebuild
-NODE_ENV=production npx expo export --platform android
+npm run export:android
 ```
 
 Ayrıntılı sonuçlar için `TEST-RESULTS.md` dosyasına bakın.
