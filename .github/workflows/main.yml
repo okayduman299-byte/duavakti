@@ -1,4 +1,4 @@
-name: DuaVakti Yeni Surumu Hazirla
+name: DuaVakti Final Surumu Hazirla
 
 on:
   workflow_dispatch:
@@ -14,24 +14,52 @@ jobs:
       - name: Depoyu hazirla
         uses: actions/checkout@v4
 
-      - name: Yeni DuaVakti paketini ac
+      - name: En yeni DuaVakti paketini bul ve ac
+        shell: bash
         run: |
-          rm -rf rebuild
-          rm -rf /tmp/duavakti-rebuild
-          mkdir -p rebuild
-          mkdir -p /tmp/duavakti-rebuild
-          unzip -q DUAVAKTI-REBUILD-v1.1.4.zip -d /tmp/duavakti-rebuild
-          cp -R /tmp/duavakti-rebuild/DUAVAKTI-REBUILD/. rebuild/
+          set -euo pipefail
 
-      - name: Dosyalari GitHub'a kaydet
+          ZIP_FILE="$(find . -maxdepth 1 -type f -name 'DUAVAKTI-REBUILD-v*.zip' -printf '%f\n' | sort -V | tail -n 1)"
+          if [ -z "$ZIP_FILE" ]; then
+            echo "DUAVAKTI-REBUILD-v*.zip bulunamadi."
+            exit 1
+          fi
+
+          echo "Kullanilan paket: $ZIP_FILE"
+          rm -rf rebuild /tmp/duavakti-final
+          mkdir -p rebuild /tmp/duavakti-final
+          unzip -q "$ZIP_FILE" -d /tmp/duavakti-final
+
+          SOURCE_DIR="$(find /tmp/duavakti-final -maxdepth 1 -type d -name 'DUAVAKTI-REBUILD' | head -n 1)"
+          if [ -z "$SOURCE_DIR" ]; then
+            echo "ZIP icinde DUAVAKTI-REBUILD klasoru bulunamadi."
+            exit 1
+          fi
+
+          cp -a "$SOURCE_DIR"/. rebuild/
+
+          test -f rebuild/package.json
+          test -f rebuild/app.json
+          test -f rebuild/eas.json
+          test -f rebuild/modules/duavakti-widget/android/build.gradle
+          grep -q "expo-module-gradle-plugin" rebuild/modules/duavakti-widget/android/build.gradle
+          test -f rebuild/modules/duavakti-widget/android/src/main/res/xml/duavakti_widget_small_info.xml
+          test -f rebuild/modules/duavakti-widget/android/src/main/res/xml/duavakti_widget_medium_info.xml
+          test -f rebuild/modules/duavakti-widget/android/src/main/res/xml/duavakti_widget_large_info.xml
+
+      - name: Yeni surumu GitHub'a kaydet
+        shell: bash
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add rebuild
+
+          git add -f rebuild
+
           if git diff --cached --quiet; then
-            echo "Kaydedilecek yeni dosya yok."
+            echo "Kaydedilecek yeni degisiklik yok."
             exit 0
           fi
-          git commit -m "Yeni DuaVakti uygulamasini hazirla"
+
+          git commit -m "DuaVakti final surumunu hazirla"
           git push
-          
