@@ -19,6 +19,8 @@ class DuaVaktiLargeWidget : AppWidgetProvider() {
           setTextViewText(labels[index], row.first)
           setTextViewText(times[index], row.second)
         }
+        setTextViewText(R.id.dua_title, "GÜNÜN DUASI · ${data.dailyDua.title}")
+        setTextViewText(R.id.dua_meaning, data.dailyDua.meaning)
       }
     }
   }

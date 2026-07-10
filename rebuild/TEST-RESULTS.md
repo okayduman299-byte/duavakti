@@ -1,46 +1,32 @@
-# DuaVakti 1.3.0 — Test Sonuçları
+# DuaVakti 1.4.0 — Test Results
 
-## Temiz paket doğrulaması
+## Otomatik doğrulamalar
 
-Temiz kaynak kopyasında sıfırdan çalıştırıldı:
-
-- `npm ci --include=dev`: PASS — 478 paket
-- TypeScript `tsc --noEmit`: PASS
-- Mantık testleri: PASS — 19/19
-- Statik proje doğrulaması: PASS — 60/60
+- Temiz `npm ci --offline --ignore-scripts`: PASS — 478 paket, 0 güvenlik açığı
+- TypeScript (`tsc --noEmit`): PASS
+- Mantık testleri: 23/23 PASS
+- Statik proje doğrulaması: 74/74 PASS
 - Expo Android prebuild: PASS
-- Expo Autolinking: PASS
-- Native/prebuild doğrulaması: PASS — 14/14
-- Android Hermes/Metro export: PASS — 623 modül
-- Android widget XML parse: PASS — 11 XML dosyası
-- Kotlin `R.id` → layout ID eşleşmesi: PASS — 18 referans, 0 eksik
-- Manifest `@xml` provider kaynak eşleşmesi: PASS
+- Expo native module autolinking: PASS
+- Prebuild/native doğrulama: 14/14 PASS
+- Android Hermes/Metro export: PASS — 625 modül
+- Android XML doğrulaması: 11/11 PASS
+- Kotlin → `R.id` eşleşmesi: 29 referans, 0 eksik
 
-## Regresyon kontrolleri
+## Özellikle doğrulanan düzeltmeler
 
-### Dualar ekranı
+- Dualar ekranında FlatList yok: PASS
+- Dualar ekranında iç içe yatay ScrollView yok: PASS
+- Dualar ekranı kimlik + kategori durumuyla çalışıyor: PASS
+- Kıble pusulası `watchHeadingAsync` ile canlı yön izliyor: PASS
+- Kıble açısı telefon yönüne göre hesaplanıyor: PASS
+- 360° sınırında açı yumuşatma testleri: PASS
+- Pusula aboneliği ekran kapanınca temizleniyor: PASS
+- Küçük widget dua başlığı içeriyor: PASS
+- Orta widget dua başlığı ve anlamı içeriyor: PASS
+- Büyük widget dua başlığı ve anlamı içeriyor: PASS
+- Küçük/orta/büyük widget Kotlin provider'ları günlük dua verisini bağlıyor: PASS
 
-- İlk açılışta `FlatList` kullanılmıyor.
-- Sekme bazlı `ErrorBoundary` etkin.
-- Bölüm hatası alt navigasyonu kapatmıyor.
+## Gradle release build sınırı
 
-### Dua widgetı
-
-- 4 receiver manifestte kayıtlı.
-- Yeni `DuaVaktiDuaWidget` sınıfı mevcut.
-- `duavakti_widget_dua.xml` layoutı mevcut ve parse ediliyor.
-- `duavakti_widget_dua_info.xml` provider tanımı mevcut.
-- Native köprü dua listesini kaydediyor.
-- Widget günlük dua verisini okuyor.
-
-### Kur’an otomatik okuma
-
-- Expo Audio playlist API bağlı.
-- Suredeki sesli ayetler playlist içine ekleniyor.
-- Tek ayetten başlatma `skipTo` ile doğru sıraya geçiyor.
-- Playlist `loop: none` ile son ayette duruyor.
-- Tümünü dinle / duraklat / devam et / baştan dinle akışları kaynakta doğrulandı.
-
-## Tam Gradle APK sınırı
-
-Yerel `./gradlew :app:assembleRelease` denemesi uygulama hatası nedeniyle değil, çalışma ortamının `services.gradle.org` adresini çözememesi nedeniyle başlayamadı (`UnknownHostException`). Bu yüzden son APK derlemesi EAS Build üzerinde yapılmalıdır.
+`./android/gradlew :app:assembleRelease --no-daemon` komutu başlatıldı. Kod derlemesine geçmeden önce bu çalışma ortamı dış ağa erişemediği için `services.gradle.org` üzerindeki Gradle 9.3.1 dağıtımı indirilemedi (`UnknownHostException`). Bu nedenle burada APK üretildiği iddia edilmez. Son tam APK derlemesi EAS Build üzerinde yapılmalıdır.

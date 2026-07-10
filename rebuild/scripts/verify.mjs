@@ -27,6 +27,8 @@ const required = [
   'src/screens/DuasScreen.tsx',
   'src/screens/WidgetScreen.tsx',
   'src/screens/SettingsScreen.tsx',
+  'src/components/QiblaCompass.tsx',
+  'src/lib/qibla.ts',
   'src/data/surahNames.ts',
   'src/components/ErrorBoundary.tsx',
   'src/lib/prayerService.ts',
@@ -47,7 +49,7 @@ const required = [
 check(required.every(exists), 'Gerekli kaynak dosyaları mevcut');
 
 const pkg = JSON.parse(read('package.json'));
-check(pkg.version === '1.3.0', 'Paket sürümü 1.3.0');
+check(pkg.version === '1.4.0', 'Paket sürümü 1.4.0');
 check(!('duavakti-widget' in (pkg.dependencies ?? {})), 'Yerel widget modülü npm file bağımlılığı değil');
 check(!('expo-dev-client' in (pkg.dependencies ?? {})), 'Preview APK gereksiz dev-client bağımlılığı taşımıyor');
 check(pkg.dependencies?.['expo-asset'] === '~57.0.3', 'expo-audio için gerekli expo-asset doğrudan kurulu');
@@ -56,8 +58,8 @@ const lock = read('package-lock.json');
 check(!/internal\.api\.openai\.org|applied-caas|artifactory\/api\/npm/i.test(lock), 'package-lock yalnız genel npm adreslerini kullanıyor');
 
 const appConfig = JSON.parse(read('app.json'));
-check(appConfig.expo?.version === '1.3.0', 'Expo uygulama sürümü 1.3.0');
-check(appConfig.expo?.android?.versionCode === 8, 'Android versionCode 8');
+check(appConfig.expo?.version === '1.4.0', 'Expo uygulama sürümü 1.4.0');
+check(appConfig.expo?.android?.versionCode === 9, 'Android versionCode 9');
 const plugins = appConfig.expo?.plugins ?? [];
 check(!plugins.some((entry) => entry === './plugins/withDuaVaktiWidgets'), 'Kırılgan widget config plugin kaldırıldı');
 check(plugins.some((entry) => Array.isArray(entry) && entry[0] === 'expo-audio'), 'expo-audio config plugin bağlı');
@@ -131,8 +133,29 @@ check(nativeModule.includes('updateAllWidgets(context)'), 'Widget güncelleme ç
 check(nativeModule.includes('putString("duas"'), 'Dua listesi native widget verisine kaydediliyor');
 const duaWidget = read('modules/duavakti-widget/android/src/main/java/com/shaesdoes/duavakti/widget/DuaVaktiDuaWidget.kt');
 check(duaWidget.includes('data.dailyDua'), 'Günün duası widgetı günlük dua verisini gösteriyor');
+for (const size of ['Small', 'Medium', 'Large']) {
+  const provider = read(`modules/duavakti-widget/android/src/main/java/com/shaesdoes/duavakti/widget/DuaVakti${size}Widget.kt`);
+  check(provider.includes('data.dailyDua'), `${size} widget günlük dua verisini de gösteriyor`);
+}
+for (const size of ['small', 'medium', 'large']) {
+  const layout = read(`modules/duavakti-widget/android/src/main/res/layout/duavakti_widget_${size}.xml`);
+  check(layout.includes('@+id/dua_title'), `Widget ${size} dua başlığı alanına sahip`);
+}
+const mediumLayout = read('modules/duavakti-widget/android/src/main/res/layout/duavakti_widget_medium.xml');
+const largeLayout = read('modules/duavakti-widget/android/src/main/res/layout/duavakti_widget_large.xml');
+check(mediumLayout.includes('@+id/dua_meaning'), 'Orta widget dua anlamını gösteriyor');
+check(largeLayout.includes('@+id/dua_meaning'), 'Büyük widget dua anlamını gösteriyor');
 const duasScreen = read('src/screens/DuasScreen.tsx');
 check(!duasScreen.includes('FlatList'), 'Dualar ekranı ilk açılışta FlatList yaşam döngüsüne bağlı değil');
+check(!duasScreen.includes('horizontal'), 'Dualar ekranında iç içe yatay ScrollView yok');
+check(duasScreen.includes('selectedId') && duasScreen.includes('category'), 'Dualar ekranı sade kimlik ve kategori durumuyla çalışıyor');
+
+const qiblaCompass = read('src/components/QiblaCompass.tsx');
+check(qiblaCompass.includes('Location.watchHeadingAsync'), 'Kıble pusulası cihaz yönünü canlı izliyor');
+check(qiblaCompass.includes('relativeQiblaAngle'), 'Kıble oku telefon yönüne göre hesaplanıyor');
+check(qiblaCompass.includes('subscription?.remove()'), 'Kıble pusulası aboneliği ekran kapanınca temizleniyor');
+const settingsScreen = read('src/screens/SettingsScreen.tsx');
+check(settingsScreen.includes('<QiblaCompass'), 'Canlı kıble pusulası ayarlar ekranına bağlı');
 
 const sourceFiles = [];
 function collect(dir) {

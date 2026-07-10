@@ -20,7 +20,7 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:layout_marginTop="8dp">
+    android:layout_marginTop="7dp">
 
     <TextView
       android:id="@+id/next_prayer"
@@ -29,7 +29,7 @@
       android:layout_weight="1"
       android:text="Sıradaki"
       android:textColor="#F2F0EA"
-      android:textSize="26sp"
+      android:textSize="24sp"
       android:textStyle="bold" />
 
     <TextView
@@ -38,28 +38,51 @@
       android:layout_height="wrap_content"
       android:text="--:--"
       android:textColor="#F2F0EA"
-      android:textSize="22sp"
+      android:textSize="21sp"
       android:textStyle="bold" />
   </LinearLayout>
 
-  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="16dp">
-    <TextView android:id="@+id/prayer_label_1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Sabah" android:textColor="#858C89" android:textSize="14sp" />
-    <TextView android:id="@+id/prayer_time_1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#F2F0EA" android:textSize="15sp" android:textStyle="bold" />
+  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="13dp">
+    <TextView android:id="@+id/prayer_label_1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Sabah" android:textColor="#858C89" android:textSize="13sp" />
+    <TextView android:id="@+id/prayer_time_1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#F2F0EA" android:textSize="14sp" android:textStyle="bold" />
   </LinearLayout>
-  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="10dp">
-    <TextView android:id="@+id/prayer_label_2" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Öğle" android:textColor="#858C89" android:textSize="14sp" />
-    <TextView android:id="@+id/prayer_time_2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#F2F0EA" android:textSize="15sp" android:textStyle="bold" />
+  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="7dp">
+    <TextView android:id="@+id/prayer_label_2" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Öğle" android:textColor="#858C89" android:textSize="13sp" />
+    <TextView android:id="@+id/prayer_time_2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#F2F0EA" android:textSize="14sp" android:textStyle="bold" />
   </LinearLayout>
-  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="10dp">
-    <TextView android:id="@+id/prayer_label_3" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="İkindi" android:textColor="#858C89" android:textSize="14sp" />
-    <TextView android:id="@+id/prayer_time_3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#F2F0EA" android:textSize="15sp" android:textStyle="bold" />
+  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="7dp">
+    <TextView android:id="@+id/prayer_label_3" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="İkindi" android:textColor="#858C89" android:textSize="13sp" />
+    <TextView android:id="@+id/prayer_time_3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#F2F0EA" android:textSize="14sp" android:textStyle="bold" />
   </LinearLayout>
-  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="10dp">
-    <TextView android:id="@+id/prayer_label_4" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Akşam" android:textColor="#858C89" android:textSize="14sp" />
-    <TextView android:id="@+id/prayer_time_4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#F2F0EA" android:textSize="15sp" android:textStyle="bold" />
+  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="7dp">
+    <TextView android:id="@+id/prayer_label_4" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Akşam" android:textColor="#858C89" android:textSize="13sp" />
+    <TextView android:id="@+id/prayer_time_4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#F2F0EA" android:textSize="14sp" android:textStyle="bold" />
   </LinearLayout>
-  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="10dp">
-    <TextView android:id="@+id/prayer_label_5" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Yatsı" android:textColor="#858C89" android:textSize="14sp" />
-    <TextView android:id="@+id/prayer_time_5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#F2F0EA" android:textSize="15sp" android:textStyle="bold" />
+  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="7dp">
+    <TextView android:id="@+id/prayer_label_5" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Yatsı" android:textColor="#858C89" android:textSize="13sp" />
+    <TextView android:id="@+id/prayer_time_5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="--:--" android:textColor="#F2F0EA" android:textSize="14sp" android:textStyle="bold" />
   </LinearLayout>
+
+  <TextView
+    android:id="@+id/dua_title"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="13dp"
+    android:ellipsize="end"
+    android:maxLines="1"
+    android:text="GÜNÜN DUASI · İlim duası"
+    android:textColor="#8EC2A1"
+    android:textSize="10sp"
+    android:textStyle="bold" />
+
+  <TextView
+    android:id="@+id/dua_meaning"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="4dp"
+    android:ellipsize="end"
+    android:maxLines="2"
+    android:text="Rabbim! İlmimi artır."
+    android:textColor="#D8D8D2"
+    android:textSize="12sp" />
 </LinearLayout>

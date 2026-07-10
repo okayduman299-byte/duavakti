@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import type { AppPreferences, PrayerLocation } from '../types';
-import { qiblaBearing } from '../lib/prayer';
+import { QiblaCompass } from '../components/QiblaCompass';
 import { colors, radii } from '../theme';
 
 export function SettingsScreen({
@@ -16,9 +16,6 @@ export function SettingsScreen({
   onRefresh: () => void;
 }) {
   const [city, setCity] = useState(preferences.city);
-  const bearing = activeLocation.latitude != null && activeLocation.longitude != null
-    ? qiblaBearing(activeLocation.latitude, activeLocation.longitude)
-    : null;
 
   const saveCity = () => {
     const clean = city.trim();
@@ -31,6 +28,8 @@ export function SettingsScreen({
     <ScrollView style={styles.root} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Text style={styles.eyebrow}>AYARLAR</Text>
       <Text style={styles.title}>DuaVakti sana göre çalışsın.</Text>
+
+      <QiblaCompass activeLocation={activeLocation} />
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Konum ve vakitler</Text>
@@ -49,21 +48,15 @@ export function SettingsScreen({
         </View>
         <View style={styles.divider} />
         <View style={styles.settingRow}>
-          <View style={styles.settingText}><Text style={styles.cardTitle}>GPS konumu</Text><Text style={styles.help}>Şehir yerine son alınan cihaz konumunu kullanır.</Text></View>
+          <View style={styles.settingText}><Text style={styles.cardTitle}>GPS konumu</Text><Text style={styles.help}>Şehir yerine son alınan cihaz konumunu namaz vakitleri için kullanır.</Text></View>
           <Switch value={preferences.useGps} onValueChange={(value) => updatePreferences({ useGps: value })} trackColor={{ true: colors.accentSoft }} thumbColor={colors.text} />
         </View>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Kıble</Text>
-        {bearing == null ? <Text style={styles.help}>Kıble yönünü görmek için ana ekrandaki konum düğmesine dokun.</Text> : <Text style={styles.bearing}>{Math.round(bearing)}°</Text>}
-        {bearing != null ? <Text style={styles.help}>Kuzeyden saat yönünde yaklaşık açı.</Text> : null}
-      </View>
-
-      <View style={styles.card}>
         <Text style={styles.cardTitle}>Uygulama hakkında</Text>
-        <Text style={styles.help}>DuaVakti 1.2.0 · Sıfırdan yeniden yazılmış sürüm.</Text>
-        <Text style={styles.help}>Namaz vakitleri: AlAdhan API. Kur’an içeriği: Al Quran Cloud API. Ağ hataları uygulamayı kapatmaz; önbellek ve tekrar deneme akışları kullanılır.</Text>
+        <Text style={styles.help}>DuaVakti 1.4.0 · Dualar ekranı, birleşik dua widgetları ve canlı kıble pusulası.</Text>
+        <Text style={styles.help}>Kıble pusulası cihazın pusula yönünü canlı takip eder. Namaz vakitleri ve Kur’an verileri ağ hatalarında önbellekten çalışabilir.</Text>
       </View>
       <View style={{ height: 120 }} />
     </ScrollView>
@@ -78,13 +71,12 @@ const styles = StyleSheet.create({
   card: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radii.lg, padding: 18, marginBottom: 14 },
   cardTitle: { color: colors.text, fontSize: 17, fontWeight: '900' },
   label: { color: colors.textMuted, fontSize: 12, marginTop: 18, marginBottom: 8 },
-  inputRow: { flexDirection: 'row', gap: 8 },
-  input: { flex: 1, backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border, borderRadius: 14, color: colors.text, paddingHorizontal: 14, paddingVertical: 12 },
+  inputRow: { flexDirection: 'row' },
+  input: { flex: 1, backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border, borderRadius: 14, color: colors.text, paddingHorizontal: 14, paddingVertical: 12, marginRight: 8 },
   saveButton: { backgroundColor: colors.accentSoft, borderRadius: 14, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 15 },
   saveText: { color: colors.text, fontWeight: '800' },
   help: { color: colors.textMuted, fontSize: 13, lineHeight: 20, marginTop: 8 },
   settingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   settingText: { flex: 1, paddingRight: 16 },
   divider: { height: 1, backgroundColor: colors.border, marginVertical: 18 },
-  bearing: { color: colors.accent, fontSize: 56, fontWeight: '900', marginTop: 10 },
 });

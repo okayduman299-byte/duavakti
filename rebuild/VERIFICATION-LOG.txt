@@ -1,13 +1,15 @@
-DuaVakti 1.3.0 verification summary
+DuaVakti 1.4.0 verification
 
-npm ci: PASS (478 packages)
-TypeScript: PASS
-Logic tests: PASS (19/19)
-Static verification: PASS (60/60)
-Expo Android prebuild: PASS
-Prebuild/native verification: PASS (14/14)
-Android Metro/Hermes export: PASS (623 modules)
-Widget XML parse: PASS (11 files)
-Kotlin R.id references: PASS (18 refs, 0 missing)
-Manifest provider resources: PASS
-Local assembleRelease: NOT RUN — Gradle distribution host unavailable in this environment (UnknownHostException: services.gradle.org)
+PASS clean npm ci --offline --ignore-scripts — 478 packages, 0 vulnerabilities
+PASS npm run typecheck
+PASS npm run test:logic — 23/23
+PASS npm run verify — 74/74
+PASS expo prebuild --platform android --clean --no-install
+PASS npm run verify:prebuild — 14/14
+PASS expo export --platform android — 625 modules
+PASS Android XML parse — 11/11
+PASS Kotlin R.id references — 29 references, 0 missing
+
+GRADLE ASSEMBLE RELEASE:
+NOT COMPLETED — environment could not resolve services.gradle.org while downloading Gradle 9.3.1.
+No application code or Android resource compilation error was reached in this environment.

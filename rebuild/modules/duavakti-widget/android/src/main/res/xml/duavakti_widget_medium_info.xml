@@ -2,7 +2,7 @@
   android:description="@string/widget_medium_description"
   android:initialLayout="@layout/duavakti_widget_medium"
   android:minWidth="250dp"
-  android:minHeight="110dp"
+  android:minHeight="160dp"
   android:previewLayout="@layout/duavakti_widget_medium"
   android:resizeMode="none"
   android:updatePeriodMillis="1800000"

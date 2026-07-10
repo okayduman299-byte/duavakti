@@ -1,29 +1,30 @@
-# DuaVakti 1.3.0 — Sürüm Notları
+# DuaVakti 1.4.0 — Release Notes
 
-## Dualar
+Bu sürüm, gerçek cihazda bildirilen üç soruna odaklanır.
 
-- İlk girişte görülen bölüm hata ekranını hedefleyen ekran mimarisi yenilendi.
-- Dualar listesi ilk açılışta daha basit ve kararlı bir render akışı kullanıyor.
-- Global hata sınırı yerine sekme bazlı hata sınırı kullanılıyor.
+## Düzeltilenler
 
-## Widget
+### Dualar bölümü
+- Ekran tamamen sadeleştirildi.
+- İç içe yatay ScrollView kaldırıldı.
+- FlatList kullanılmıyor.
+- Seçim yalnız dua kimliği (`selectedId`) üzerinden tutuluyor.
+- Kategori filtreleri tek ScrollView içinde güvenli `View`/`Pressable` yapısına taşındı.
 
-- Yeni `DuaVakti · Günün Duası` widgetı eklendi.
-- Native modül artık dua listesini SharedPreferences içinde saklıyor.
-- Günün duası Android tarafında cihazın gün numarasına göre seçiliyor.
-- Widgetda dua başlığı, Türkçe anlamı ve kaynağı gösteriliyor.
-- Toplam widget receiver sayısı 4 oldu.
+### Widgetlar
+- Küçük widget artık sıradaki vakitle birlikte günün dua başlığını gösterir.
+- Orta widget vakit, geri sayım, dua başlığı ve dua anlamını birlikte gösterir.
+- Büyük widget beş vakit ile günün duasını aynı kartta gösterir.
+- Ayrı “Günün Duası” widgetı korunmuştur.
+- Eski yerleştirilmiş widgetlar uygulama açılıp “Tüm widgetları şimdi güncelle” denildiğinde yeni layout ile yenilenir.
 
-## Kur’an sesli tilavet
-
-- `useAudioPlayer` tabanlı tek-ayetin-tek-sefer çalması kaldırıldı.
-- `useAudioPlaylist` ve `useAudioPlaylistStatus` ile sure bazlı çalma listesi kullanılıyor.
-- Ayetler otomatik olarak sıradaki ayete geçiyor.
-- `Tümünü dinle`, `Duraklat`, `Devam et`, `Baştan dinle` akışları eklendi.
-- Bir ayetten başlatıldığında kalan ayetler otomatik devam ediyor.
-- Aktif ayet vurgulanıyor ve liste oynayan ayete kayıyor.
+### Canlı kıble pusulası
+- Sabit derece göstergesi kaldırıldı.
+- Cihaz pusulası canlı izlenir.
+- Ok, telefon döndükçe Kâbe yönüne göre döner.
+- 360° sınırında ters yönde sıçramayı azaltan açı yumuşatma eklendi.
+- Pusula doğruluk durumu ve kalibrasyon uyarısı eklendi.
 
 ## Sürüm
-
-- Uygulama: 1.3.0
-- Android versionCode: 8
+- Uygulama: 1.4.0
+- Android versionCode: 9
