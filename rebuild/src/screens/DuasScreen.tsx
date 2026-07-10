@@ -2,41 +2,69 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { DUAS } from '../data/duas';
 import { colors, radii } from '../theme';
+import type { DuaItem } from '../types';
 
 const ALL_CATEGORY = 'Tümü';
 const CATEGORIES = [ALL_CATEGORY, ...Array.from(new Set(DUAS.map((item) => item.category)))];
+
+function safeText(value: unknown, fallback = ''): string {
+  return typeof value === 'string' ? value : fallback;
+}
+
+function normalizeDua(item: unknown): DuaItem | null {
+  if (!item || typeof item !== 'object') return null;
+  const row = item as Record<string, unknown>;
+  const id = safeText(row.id);
+  const title = safeText(row.title);
+  if (!id || !title) return null;
+  return {
+    id,
+    title,
+    category: safeText(row.category, 'Dua'),
+    arabic: safeText(row.arabic),
+    latin: safeText(row.latin),
+    meaning: safeText(row.meaning),
+    source: safeText(row.source),
+  };
+}
+
+const SAFE_DUAS = DUAS.flatMap((item) => {
+  const normalized = normalizeDua(item);
+  return normalized ? [normalized] : [];
+});
+
+function DuaDetail({ item, onBack }: { item: DuaItem; onBack: () => void }) {
+  return (
+    <ScrollView style={styles.root} contentContainerStyle={styles.detailContent} keyboardShouldPersistTaps="handled">
+      <Pressable style={styles.back} onPress={onBack}>
+        <Text style={styles.backText}>‹ Dualar</Text>
+      </Pressable>
+      <Text style={styles.category}>{safeText(item.category, 'Dua')}</Text>
+      <Text style={styles.detailTitle}>{safeText(item.title, 'Dua')}</Text>
+      <View style={styles.detailCard}>
+        {item.arabic ? <Text style={styles.arabic}>{safeText(item.arabic)}</Text> : null}
+        <View style={styles.divider} />
+        {item.latin ? <Text style={styles.latin}>{safeText(item.latin)}</Text> : null}
+        {item.meaning ? <Text style={styles.meaning}>{safeText(item.meaning)}</Text> : null}
+        {item.source ? <Text style={styles.source}>{safeText(item.source)}</Text> : null}
+      </View>
+      <View style={styles.bottomSpace} />
+    </ScrollView>
+  );
+}
 
 export function DuasScreen() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [category, setCategory] = useState(ALL_CATEGORY);
 
-  const selected = useMemo(
-    () => (selectedId ? DUAS.find((item) => item.id === selectedId) ?? null : null),
-    [selectedId],
-  );
+  const selected = selectedId ? SAFE_DUAS.find((item) => item.id === selectedId) ?? null : null;
   const visible = useMemo(
-    () => (category === ALL_CATEGORY ? DUAS : DUAS.filter((item) => item.category === category)),
+    () => (category === ALL_CATEGORY ? SAFE_DUAS : SAFE_DUAS.filter((item) => item.category === category)),
     [category],
   );
 
   if (selected) {
-    return (
-      <ScrollView style={styles.root} contentContainerStyle={styles.detailContent} keyboardShouldPersistTaps="handled">
-        <Pressable style={styles.back} onPress={() => setSelectedId(null)}>
-          <Text style={styles.backText}>‹ Dualar</Text>
-        </Pressable>
-        <Text style={styles.category}>{selected.category}</Text>
-        <Text style={styles.detailTitle}>{selected.title}</Text>
-        <View style={styles.detailCard}>
-          <Text style={styles.arabic}>{selected.arabic}</Text>
-          <View style={styles.divider} />
-          <Text style={styles.latin}>{selected.latin}</Text>
-          <Text style={styles.meaning}>{selected.meaning}</Text>
-          <Text style={styles.source}>{selected.source}</Text>
-        </View>
-        <View style={styles.bottomSpace} />
-      </ScrollView>
-    );
+    return <DuaDetail item={selected} onBack={() => setSelectedId(null)} />;
   }
 
   return (
@@ -53,7 +81,7 @@ export function DuasScreen() {
                 style={[styles.chip, active && styles.chipActive]}
                 onPress={() => setCategory(item)}
               >
-                <Text style={[styles.chipText, active && styles.chipTextActive]}>{item}</Text>
+                <Text style={[styles.chipText, active && styles.chipTextActive]}>{safeText(item)}</Text>
               </Pressable>
             );
           })}
@@ -65,9 +93,9 @@ export function DuasScreen() {
           <Pressable key={item.id} style={styles.row} onPress={() => setSelectedId(item.id)}>
             <View style={styles.moon}><Text style={styles.moonText}>☾</Text></View>
             <View style={styles.rowText}>
-              <Text style={styles.rowCategory}>{item.category}</Text>
-              <Text style={styles.rowTitle}>{item.title}</Text>
-              <Text numberOfLines={2} style={styles.rowMeaning}>{item.meaning}</Text>
+              <Text style={styles.rowCategory}>{safeText(item.category)}</Text>
+              <Text style={styles.rowTitle}>{safeText(item.title)}</Text>
+              <Text numberOfLines={2} style={styles.rowMeaning}>{safeText(item.meaning)}</Text>
             </View>
             <Text style={styles.arrow}>›</Text>
           </Pressable>
@@ -104,9 +132,9 @@ const styles = StyleSheet.create({
   category: { color: colors.accent, fontSize: 12, fontWeight: '900', letterSpacing: 2 },
   detailTitle: { color: colors.text, fontSize: 34, lineHeight: 42, fontWeight: '900', marginTop: 10, marginBottom: 24 },
   detailCard: { backgroundColor: colors.greenCard, borderWidth: 1, borderColor: colors.borderStrong, borderRadius: radii.xl, padding: 24 },
-  arabic: { color: colors.text, fontSize: 31, lineHeight: 57, textAlign: 'right' },
+  arabic: { color: colors.text, fontSize: 31, lineHeight: 57, textAlign: 'right', writingDirection: 'rtl' },
   divider: { height: 1, backgroundColor: colors.borderStrong, marginVertical: 22 },
-  latin: { color: colors.text, fontSize: 17, lineHeight: 29, fontStyle: 'italic' },
+  latin: { color: colors.text, fontSize: 17, lineHeight: 29 },
   meaning: { color: colors.textMuted, fontSize: 16, lineHeight: 27, marginTop: 18 },
   source: { color: colors.accent, fontSize: 12, fontWeight: '800', marginTop: 20 },
   bottomSpace: { height: 120 },

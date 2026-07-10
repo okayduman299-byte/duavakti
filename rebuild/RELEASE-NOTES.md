@@ -1,30 +1,22 @@
-# DuaVakti 1.4.0 — Release Notes
+# DuaVakti 1.4.2
 
-Bu sürüm, gerçek cihazda bildirilen üç soruna odaklanır.
+## Ana düzeltme
 
-## Düzeltilenler
+Kur'an sure detayına girince görülen bölüm hatası için ses motoru değiştirildi.
 
-### Dualar bölümü
-- Ekran tamamen sadeleştirildi.
-- İç içe yatay ScrollView kaldırıldı.
-- FlatList kullanılmıyor.
-- Seçim yalnız dua kimliği (`selectedId`) üzerinden tutuluyor.
-- Kategori filtreleri tek ScrollView içinde güvenli `View`/`Pressable` yapısına taşındı.
+1.3.0 ile eklenen `AudioPlaylist` tabanlı yapı tamamen kaldırıldı. 1.2.0'da çalışan tek `AudioPlayer` yapısına dönüldü ve otomatik sonraki ayete geçiş bu oyuncu üzerinde yeniden kuruldu.
 
-### Widgetlar
-- Küçük widget artık sıradaki vakitle birlikte günün dua başlığını gösterir.
-- Orta widget vakit, geri sayım, dua başlığı ve dua anlamını birlikte gösterir.
-- Büyük widget beş vakit ile günün duasını aynı kartta gösterir.
-- Ayrı “Günün Duası” widgetı korunmuştur.
-- Eski yerleştirilmiş widgetlar uygulama açılıp “Tüm widgetları şimdi güncelle” denildiğinde yeni layout ile yenilenir.
+- Sure listesi ve sure detay ekranı ses motorundan bağımsız açılır.
+- Bir ayetten dinleme başlatınca sonraki ayetlere otomatik devam eder.
+- `Tümünü dinle` sureyi ilk ayetten son ayete kadar sırayla oynatır.
+- Duraklat/devam et korunur.
+- Ayet bittiğinde yalnız bir kez sonraki ayete geçmek için bitiş kenarı korunur; aynı bitiş olayı birden fazla ayeti atlayamaz.
+- Sekme hata sınırı teknik hata metnini boş bırakmayacak şekilde güçlendirildi.
 
-### Canlı kıble pusulası
-- Sabit derece göstergesi kaldırıldı.
-- Cihaz pusulası canlı izlenir.
-- Ok, telefon döndükçe Kâbe yönüne göre döner.
-- 360° sınırında ters yönde sıçramayı azaltan açı yumuşatma eklendi.
-- Pusula doğruluk durumu ve kalibrasyon uyarısı eklendi.
+## Korunan özellikler
 
-## Sürüm
-- Uygulama: 1.4.0
-- Android versionCode: 9
+- Canlı kıble pusulası
+- Küçük/orta/büyük namaz widgetları
+- Günün duası widgetı
+- Türkçe sure isimleri ve Diyanet meali
+- Dua listesi ve dua detayları

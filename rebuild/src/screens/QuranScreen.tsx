@@ -10,8 +10,8 @@ import {
 } from "react-native";
 import {
   setAudioModeAsync,
-  useAudioPlaylist,
-  useAudioPlaylistStatus,
+  useAudioPlayer,
+  useAudioPlayerStatus,
 } from "expo-audio";
 import type {
   AppPreferences,
@@ -20,7 +20,7 @@ import type {
   SurahSummary,
 } from "../types";
 import { loadSurah, loadSurahList } from "../lib/quranService";
-import { matchesSurah } from "../lib/quran";
+import { matchesSurah, normalizeSurahSummary } from "../lib/quran";
 import { getTurkishRevelationType } from "../data/surahNames";
 import { readJson, writeJson } from "../lib/storage";
 import { ErrorState, LoadingState } from "../components/States";
@@ -42,23 +42,26 @@ export function QuranScreen({
   const [listLoading, setListLoading] = useState(true);
   const [readerLoading, setReaderLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [audioError, setAudioError] = useState<string | null>(null);
   const [source, setSource] = useState<"network" | "cache" | null>(null);
   const [lastRead, setLastRead] = useState<number | null>(null);
   const ayahListRef = useRef<FlatList<AyahPair>>(null);
 
-  const playlist = useAudioPlaylist({
-    sources: [],
-    loop: "none",
-    updateInterval: 400,
-  });
-  const playlistStatus = useAudioPlaylistStatus(playlist);
+  // Tek bir AudioPlayer kullanıyoruz. Önceki AudioPlaylist yaklaşımı bazı Android
+  // cihazlarında sure detayına girerken JS tarafında bölüm hatasına yol açıyordu.
+  // Bu yapı daha basit: ayet bitince bir sonraki kaynağa geçiyoruz.
+  const player = useAudioPlayer(null, { updateInterval: 400 });
+  const playerStatus = useAudioPlayerStatus(player);
   const playableAyahs = useMemo(
-    () => content?.ayahs.filter((item) => Boolean(item.audio)) ?? [],
+    () => (Array.isArray(content?.ayahs) ? content.ayahs.filter((item) => Boolean(item?.audio)) : []),
     [content],
   );
+  const [activeAudioIndex, setActiveAudioIndex] = useState<number | null>(null);
+  const autoContinueRef = useRef(false);
+  const lastDidFinishRef = useRef(false);
   const activeAyah =
-    playlistStatus.trackCount > 0
-      ? (playableAyahs[playlistStatus.currentIndex]?.numberInSurah ?? null)
+    activeAudioIndex !== null
+      ? (playableAyahs[activeAudioIndex]?.numberInSurah ?? null)
       : null;
 
   useEffect(() => {
@@ -67,26 +70,40 @@ export function QuranScreen({
       interruptionMode: "doNotMix",
     });
     return () => {
-      playlist.pause();
+      player.pause();
     };
-  }, [playlist]);
+  }, [player]);
 
   useEffect(() => {
-    playlist.pause();
-    playlist.clear();
-    playableAyahs.forEach((item) => {
-      if (item.audio) playlist.add(item.audio);
-    });
-  }, [playlist, playableAyahs]);
+    const wasFinished = lastDidFinishRef.current;
+    lastDidFinishRef.current = playerStatus.didJustFinish;
+    if (!playerStatus.didJustFinish || wasFinished || activeAudioIndex === null) return;
 
-  useEffect(() => {
-    if (playlistStatus.trackCount <= 0 || playlistStatus.currentIndex < 0)
+    const nextIndex = activeAudioIndex + 1;
+    const next = playableAyahs[nextIndex];
+    if (autoContinueRef.current && next?.audio) {
+      setActiveAudioIndex(nextIndex);
+      player.replace(next.audio);
+      player.play();
+      setAudioError(null);
       return;
+    }
+
+    autoContinueRef.current = false;
+  }, [
+    activeAudioIndex,
+    playableAyahs,
+    player,
+    playerStatus.didJustFinish,
+  ]);
+
+  useEffect(() => {
+    if (activeAudioIndex === null) return;
+    const active = playableAyahs[activeAudioIndex];
+    if (!active) return;
     const indexInSurah =
       content?.ayahs.findIndex(
-        (item) =>
-          item.numberInSurah ===
-          playableAyahs[playlistStatus.currentIndex]?.numberInSurah,
+        (item) => item.numberInSurah === active.numberInSurah,
       ) ?? -1;
     if (indexInSurah < 0) return;
     const timer = setTimeout(() => {
@@ -97,12 +114,7 @@ export function QuranScreen({
       });
     }, 120);
     return () => clearTimeout(timer);
-  }, [
-    content?.ayahs,
-    playableAyahs,
-    playlistStatus.currentIndex,
-    playlistStatus.trackCount,
-  ]);
+  }, [activeAudioIndex, content?.ayahs, playableAyahs]);
 
   const fetchList = async () => {
     setListLoading(true);
@@ -126,23 +138,34 @@ export function QuranScreen({
   }, []);
 
   const stopAudio = () => {
-    playlist.pause();
-    playlist.clear();
+    try {
+      player.pause();
+    } catch {
+      // Ses modülü hatası ekranı kapatmamalı.
+    }
+    autoContinueRef.current = false;
+    lastDidFinishRef.current = false;
+    setActiveAudioIndex(null);
   };
 
   const openSurah = async (summary: SurahSummary) => {
+    const safeSummary = normalizeSurahSummary(summary);
+    if (!safeSummary) {
+      setError("Sure bilgisi geçersiz. Listeyi yeniden yükleyin.");
+      return;
+    }
     stopAudio();
-    setSelected(summary);
+    setSelected(safeSummary);
     setContent(null);
     setReaderLoading(true);
     setError(null);
     try {
-      const result = await loadSurah(summary.number);
+      const result = await loadSurah(safeSummary.number);
       setContent(result.data);
       setSource(result.source);
-      setLastRead(summary.number);
+      setLastRead(safeSummary.number);
       await writeJson(LAST_READ_KEY, {
-        surah: summary.number,
+        surah: safeSummary.number,
         updatedAt: new Date().toISOString(),
       });
     } catch (err) {
@@ -152,39 +175,64 @@ export function QuranScreen({
     }
   };
 
+  const startAudioAt = (index: number) => {
+    const item = playableAyahs[index];
+    if (!item?.audio) return;
+    lastDidFinishRef.current = playerStatus.didJustFinish;
+    autoContinueRef.current = true;
+    setActiveAudioIndex(index);
+    player.replace(item.audio);
+    player.play();
+    setAudioError(null);
+  };
+
   const toggleAyahAudio = (item: AyahPair) => {
-    if (!item.audio) return;
-    const playlistIndex = playableAyahs.findIndex(
-      (ayah) => ayah.numberInSurah === item.numberInSurah,
-    );
-    if (playlistIndex < 0) return;
+    try {
+      if (!item.audio) return;
+      const audioIndex = playableAyahs.findIndex(
+        (ayah) => ayah.numberInSurah === item.numberInSurah,
+      );
+      if (audioIndex < 0) return;
 
-    if (playlistStatus.currentIndex === playlistIndex) {
-      if (playlistStatus.playing) playlist.pause();
-      else playlist.play();
-      return;
+      if (activeAudioIndex === audioIndex) {
+        if (playerStatus.playing) {
+          player.pause();
+        } else {
+          autoContinueRef.current = true;
+          player.play();
+        }
+        return;
+      }
+
+      startAudioAt(audioIndex);
+    } catch (err) {
+      setAudioError(err instanceof Error ? err.message : "Ses başlatılamadı.");
     }
-
-    playlist.skipTo(playlistIndex);
-    playlist.play();
   };
 
   const toggleWholeSurah = () => {
-    if (!playlistStatus.trackCount) return;
-    if (playlistStatus.playing) {
-      playlist.pause();
-      return;
-    }
+    try {
+      if (!playableAyahs.length) return;
+      if (playerStatus.playing) {
+        player.pause();
+        return;
+      }
 
-    const atEnd =
-      playlistStatus.currentIndex === playlistStatus.trackCount - 1 &&
-      playlistStatus.duration > 0 &&
-      playlistStatus.currentTime >= playlistStatus.duration - 0.5;
-    if (playlistStatus.didJustFinish || atEnd) {
-      playlist.skipTo(0);
-      void playlist.seekTo(0);
+      const atEnd =
+        activeAudioIndex === playableAyahs.length - 1 &&
+        playerStatus.duration > 0 &&
+        playerStatus.currentTime >= playerStatus.duration - 0.5;
+      if (activeAudioIndex === null || playerStatus.didJustFinish || atEnd) {
+        startAudioAt(0);
+        return;
+      }
+
+      autoContinueRef.current = true;
+      player.play();
+      setAudioError(null);
+    } catch (err) {
+      setAudioError(err instanceof Error ? err.message : "Ses başlatılamadı.");
     }
-    playlist.play();
   };
 
   const filtered = useMemo(
@@ -193,17 +241,20 @@ export function QuranScreen({
   );
 
   if (selected) {
+    const selectedNumber = Number.isFinite(selected.number) ? selected.number : 0;
+    const selectedName = selected.turkishName || (selectedNumber ? `${selectedNumber}. Sure` : "Sure");
+    const selectedAyahCount = Number.isFinite(selected.numberOfAyahs) ? selected.numberOfAyahs : 0;
     const finished =
-      playlistStatus.didJustFinish ||
-      (playlistStatus.trackCount > 0 &&
-        playlistStatus.currentIndex === playlistStatus.trackCount - 1 &&
-        playlistStatus.duration > 0 &&
-        playlistStatus.currentTime >= playlistStatus.duration - 0.5);
-    const wholeButtonLabel = playlistStatus.playing
+      playerStatus.didJustFinish ||
+      (playableAyahs.length > 0 &&
+        (activeAudioIndex ?? 0) === playableAyahs.length - 1 &&
+        playerStatus.duration > 0 &&
+        playerStatus.currentTime >= playerStatus.duration - 0.5);
+    const wholeButtonLabel = playerStatus.playing
       ? "Duraklat"
       : finished
         ? "Baştan dinle"
-        : playlistStatus.currentIndex > 0 || playlistStatus.currentTime > 0
+        : (activeAudioIndex ?? 0) > 0 || playerStatus.currentTime > 0
           ? "Devam et"
           : "Tümünü dinle";
 
@@ -223,12 +274,12 @@ export function QuranScreen({
           </Pressable>
           <View style={styles.readerTitleWrap}>
             <Text style={styles.readerTitle}>
-              {selected.number}.{" "}
-              {selected.turkishName || `${selected.number}. Sure`}
+              {selectedNumber}.{" "}
+              {selectedName}
             </Text>
             <Text style={styles.readerSubtitle}>
               {getTurkishRevelationType(selected.revelationType)} ·{" "}
-              {selected.numberOfAyahs} ayet
+              {selectedAyahCount} ayet
             </Text>
           </View>
           <View style={styles.fontControls}>
@@ -267,14 +318,14 @@ export function QuranScreen({
               <Text style={styles.surahAudioEyebrow}>KESİNTİSİZ DİNLEME</Text>
               <Text style={styles.surahAudioText}>
                 {activeAyah
-                  ? `${activeAyah}. ayet · ${playlistStatus.currentIndex + 1}/${playlistStatus.trackCount}`
-                  : `${playlistStatus.trackCount} ayet hazır`}
+                  ? `${activeAyah}. ayet · ${(activeAudioIndex ?? 0) + 1}/${playableAyahs.length}`
+                  : `${playableAyahs.length} ayet hazır`}
               </Text>
             </View>
             <Pressable
               style={[
                 styles.wholeAudioButton,
-                playlistStatus.playing && styles.audioButtonActive,
+                playerStatus.playing && styles.audioButtonActive,
               ]}
               onPress={toggleWholeSurah}
             >
@@ -282,12 +333,17 @@ export function QuranScreen({
                 {wholeButtonLabel}
               </Text>
               <Text style={styles.audioIcon}>
-                {playlistStatus.playing ? "❚❚" : "▶"}
+                {playerStatus.playing ? "❚❚" : "▶"}
               </Text>
             </Pressable>
           </View>
         ) : null}
 
+        {audioError ? (
+          <View style={styles.audioErrorBox}>
+            <Text style={styles.audioErrorText}>Ses özelliği geçici olarak kullanılamıyor. Metin okumaya devam edebilirsin.</Text>
+          </View>
+        ) : null}
         {readerLoading ? <LoadingState label="Sure yükleniyor…" /> : null}
         {error && !content ? (
           <View style={styles.pad}>
@@ -322,8 +378,9 @@ export function QuranScreen({
               );
               const isActive =
                 playlistIndex >= 0 &&
-                playlistStatus.currentIndex === playlistIndex;
-              const isPlaying = isActive && playlistStatus.playing;
+                activeAudioIndex !== null &&
+                activeAudioIndex === playlistIndex;
+              const isPlaying = isActive && playerStatus.playing;
               return (
                 <View
                   style={[styles.ayahCard, isActive && styles.ayahCardActive]}
@@ -344,7 +401,7 @@ export function QuranScreen({
                       ]}
                     >
                       <Text style={styles.audioButtonText}>
-                        {playlistStatus.isBuffering && isActive
+                        {playerStatus.isBuffering && isActive
                           ? "…"
                           : isPlaying
                             ? "Duraklat"
@@ -684,4 +741,14 @@ const styles = StyleSheet.create({
     marginVertical: 18,
   },
   translation: { color: colors.text, opacity: 0.92 },
+  audioErrorBox: {
+    marginHorizontal: 16,
+    marginTop: 10,
+    padding: 12,
+    borderRadius: radii.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  audioErrorText: { color: colors.warning, fontSize: 12, lineHeight: 18 },
 });

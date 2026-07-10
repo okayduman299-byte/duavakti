@@ -17,6 +17,8 @@ export function getTurkishSurahName(number: number): string {
   return TURKISH_SURAH_NAMES[number - 1] ?? `${number}. Sure`;
 }
 
-export function getTurkishRevelationType(value: string): string {
-  return value.toLocaleLowerCase('en-US') === 'medinan' ? 'Medine' : 'Mekke';
+export function getTurkishRevelationType(value: unknown): string {
+  const normalized = typeof value === 'string' ? value.toLocaleLowerCase('en-US') : '';
+  return normalized === 'medinan' ? 'Medine' : 'Mekke';
 }
+

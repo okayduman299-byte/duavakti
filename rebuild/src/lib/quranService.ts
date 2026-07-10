@@ -1,10 +1,15 @@
 import type { SurahContent, SurahSummary } from '../types';
 import { fetchJson } from './api';
-import { parseSurahEditionsPayload, parseSurahListPayload } from './quran';
+import {
+  normalizeCachedSurahContent,
+  normalizeCachedSurahList,
+  parseSurahEditionsPayload,
+  parseSurahListPayload,
+} from './quran';
 import { readJson, writeJson } from './storage';
 
-const LIST_KEY = 'duavakti:quran:list:v1';
-const SURAH_PREFIX = 'duavakti:quran:surah:v1:';
+const LIST_KEY = 'duavakti:quran:list:v2';
+const SURAH_PREFIX = 'duavakti:quran:surah:v2:';
 
 export async function loadSurahList(): Promise<{ data: SurahSummary[]; source: 'network' | 'cache' }> {
   try {
@@ -14,8 +19,8 @@ export async function loadSurahList(): Promise<{ data: SurahSummary[]; source: '
     await writeJson(LIST_KEY, data);
     return { data, source: 'network' };
   } catch (error) {
-    const cached = await readJson<SurahSummary[]>(LIST_KEY);
-    if (cached?.length) return { data: cached, source: 'cache' };
+    const cached = normalizeCachedSurahList(await readJson<unknown>(LIST_KEY));
+    if (cached.length) return { data: cached, source: 'cache' };
     throw error;
   }
 }
@@ -31,7 +36,7 @@ export async function loadSurah(number: number): Promise<{ data: SurahContent; s
     await writeJson(key, data);
     return { data, source: 'network' };
   } catch (error) {
-    const cached = await readJson<SurahContent>(key);
+    const cached = normalizeCachedSurahContent(await readJson<unknown>(key));
     if (cached) return { data: cached, source: 'cache' };
     throw error;
   }

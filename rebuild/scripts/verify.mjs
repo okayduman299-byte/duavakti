@@ -49,7 +49,7 @@ const required = [
 check(required.every(exists), 'Gerekli kaynak dosyaları mevcut');
 
 const pkg = JSON.parse(read('package.json'));
-check(pkg.version === '1.4.0', 'Paket sürümü 1.4.0');
+check(pkg.version === '1.4.2', 'Paket sürümü 1.4.2');
 check(!('duavakti-widget' in (pkg.dependencies ?? {})), 'Yerel widget modülü npm file bağımlılığı değil');
 check(!('expo-dev-client' in (pkg.dependencies ?? {})), 'Preview APK gereksiz dev-client bağımlılığı taşımıyor');
 check(pkg.dependencies?.['expo-asset'] === '~57.0.3', 'expo-audio için gerekli expo-asset doğrudan kurulu');
@@ -58,8 +58,8 @@ const lock = read('package-lock.json');
 check(!/internal\.api\.openai\.org|applied-caas|artifactory\/api\/npm/i.test(lock), 'package-lock yalnız genel npm adreslerini kullanıyor');
 
 const appConfig = JSON.parse(read('app.json'));
-check(appConfig.expo?.version === '1.4.0', 'Expo uygulama sürümü 1.4.0');
-check(appConfig.expo?.android?.versionCode === 9, 'Android versionCode 9');
+check(appConfig.expo?.version === '1.4.2', 'Expo uygulama sürümü 1.4.2');
+check(appConfig.expo?.android?.versionCode === 11, 'Android versionCode 11');
 const plugins = appConfig.expo?.plugins ?? [];
 check(!plugins.some((entry) => entry === './plugins/withDuaVaktiWidgets'), 'Kırılgan widget config plugin kaldırıldı');
 check(plugins.some((entry) => Array.isArray(entry) && entry[0] === 'expo-audio'), 'expo-audio config plugin bağlı');
@@ -75,9 +75,11 @@ check(quran.includes('try {') && quran.includes('catch (err)'), 'Kur’an ağ/y�
 check(quran.includes('ErrorState') && quran.includes('onRetry'), 'Kur’an tekrar deneme akışı var');
 check(quran.includes('LAST_READ_KEY') && quran.includes('writeJson'), 'Son okunan sure saklanıyor');
 check(quran.includes('readerLoading') && quran.includes('listLoading'), 'Liste ve okuyucu yükleme durumları ayrık');
-check(quran.includes('useAudioPlaylist') && quran.includes('useAudioPlaylistStatus'), 'Kur’an kesintisiz ses çalma listesi bağlı');
-check(quran.includes('Tümünü dinle') && quran.includes('playlist.skipTo'), 'Sureyi baştan sona otomatik dinleme akışı var');
+check(quran.includes('useAudioPlayer') && quran.includes('useAudioPlayerStatus') && !quran.includes('useAudioPlaylist'), 'Kur’an tek oyunculu kararlı ses motoruna bağlı');
+check(quran.includes('Tümünü dinle') && quran.includes('player.replace') && quran.includes('didJustFinish') && quran.includes('nextIndex'), 'Sureyi baştan sona otomatik dinleme akışı var');
 check(quran.includes('turkishName'), 'Kur’an ekranında Türkçe sure adları kullanılıyor');
+check(quran.includes('normalizeSurahSummary'), 'Kur’an sure açılışı bozuk/eski özet verisini normalize ediyor');
+check(quran.includes('audioError') && quran.includes('try {'), 'Kur’an ses işlemleri ekranı çökertmeyecek şekilde korunuyor');
 
 const surahNames = read('src/data/surahNames.ts');
 const quotedNames = [...surahNames.matchAll(/'([^']+)'/g)].map((m) => m[1]);
@@ -88,6 +90,8 @@ check(quranService.includes('api.alquran.cloud/v1/surah'), 'Kur’an servis uç 
 check(quranService.includes('tr.diyanet'), 'Diyanet Türkçe meal sürümü tanımlı');
 check(quranService.includes('ar.alafasy'), 'Mişârî el-Afâsî sesli tilavet sürümü tanımlı');
 check(quranService.includes("source: 'cache'"), 'Kur’an çevrimdışı önbellek dönüşü var');
+check(quranService.includes('quran:list:v2') && quranService.includes('quran:surah:v2:'), 'Kur’an eski uyumsuz önbellekten ayrılmış');
+check(quranService.includes('normalizeCachedSurahList') && quranService.includes('normalizeCachedSurahContent'), 'Kur’an önbelleği okunmadan doğrulanıyor');
 
 const prayerService = read('src/lib/prayerService.ts');
 check(prayerService.includes('api.aladhan.com/v1/timings'), 'Namaz vakti servis uç noktası tanımlı');
@@ -149,6 +153,7 @@ const duasScreen = read('src/screens/DuasScreen.tsx');
 check(!duasScreen.includes('FlatList'), 'Dualar ekranı ilk açılışta FlatList yaşam döngüsüne bağlı değil');
 check(!duasScreen.includes('horizontal'), 'Dualar ekranında iç içe yatay ScrollView yok');
 check(duasScreen.includes('selectedId') && duasScreen.includes('category'), 'Dualar ekranı sade kimlik ve kategori durumuyla çalışıyor');
+check(duasScreen.includes('normalizeDua') && duasScreen.includes('safeText'), 'Dua detayları eksik/veri dışı alanlara karşı normalize ediliyor');
 
 const qiblaCompass = read('src/components/QiblaCompass.tsx');
 check(qiblaCompass.includes('Location.watchHeadingAsync'), 'Kıble pusulası cihaz yönünü canlı izliyor');

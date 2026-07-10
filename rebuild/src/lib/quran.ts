@@ -25,6 +25,57 @@ function asPositiveInt(value: unknown, fallback = 0): number {
   return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
 }
 
+
+
+export function normalizeSurahSummary(value: unknown): SurahSummary | null {
+  if (!value || typeof value !== 'object') return null;
+  const row = value as Record<string, unknown>;
+  const number = asPositiveInt(row.number);
+  if (!number || number > 114) return null;
+  const numberOfAyahs = asPositiveInt(row.numberOfAyahs, 1);
+  return {
+    number,
+    name: asText(row.name, `Sure ${number}`),
+    englishName: asText(row.englishName, `Surah ${number}`),
+    englishNameTranslation: asText(row.englishNameTranslation),
+    turkishName: asText(row.turkishName, getTurkishSurahName(number)),
+    numberOfAyahs,
+    revelationType: asText(row.revelationType),
+  };
+}
+
+export function normalizeCachedSurahList(value: unknown): SurahSummary[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    const normalized = normalizeSurahSummary(item);
+    return normalized ? [normalized] : [];
+  });
+}
+
+export function normalizeCachedSurahContent(value: unknown): SurahContent | null {
+  if (!value || typeof value !== 'object') return null;
+  const row = value as Record<string, unknown>;
+  const summary = normalizeSurahSummary(row.summary);
+  if (!summary || !Array.isArray(row.ayahs)) return null;
+
+  const ayahs = row.ayahs.flatMap((item): AyahPair[] => {
+    if (!item || typeof item !== 'object') return [];
+    const ayah = item as Record<string, unknown>;
+    const numberInSurah = asPositiveInt(ayah.numberInSurah);
+    const arabic = asText(ayah.arabic);
+    if (!numberInSurah || !arabic) return [];
+    const audio = asText(ayah.audio);
+    return [{
+      numberInSurah,
+      arabic,
+      translation: asText(ayah.translation),
+      audio: audio || undefined,
+    }];
+  });
+
+  return ayahs.length ? { summary: { ...summary, numberOfAyahs: ayahs.length }, ayahs } : null;
+}
+
 export function parseSurahListPayload(payload: unknown): SurahSummary[] {
   if (!payload || typeof payload !== 'object') return [];
   const data = (payload as { data?: unknown }).data;

@@ -3,10 +3,14 @@ import assert from 'node:assert/strict';
 import {
   matchesSurah,
   normalizeSearch,
+  normalizeCachedSurahContent,
+  normalizeCachedSurahList,
+  normalizeSurahSummary,
   parseSurahEditionsPayload,
   parseSurahListPayload,
 } from '../src/lib/quran';
 import type { SurahSummary } from '../src/types';
+import { getTurkishRevelationType } from '../src/data/surahNames';
 
 const fatiha: SurahSummary = {
   number: 1,
@@ -82,4 +86,38 @@ test('Türkçe arama aksan ve büyük-küçük harfe dayanıklıdır', () => {
   assert.equal(matchesSurah(fatiha, 'fatiha'), true);
   assert.equal(matchesSurah(fatiha, '1'), true);
   assert.equal(matchesSurah(fatiha, 'bakara'), false);
+});
+
+
+test('normalizeSurahSummary eksik eski önbellek alanlarını güvenli varsayılanlarla tamamlar', () => {
+  const result = normalizeSurahSummary({ number: 1, name: 'الفاتحة' });
+  assert.ok(result);
+  assert.equal(result.turkishName, 'Fâtiha');
+  assert.equal(result.numberOfAyahs, 1);
+  assert.equal(result.revelationType, '');
+});
+
+test('normalizeCachedSurahList bozuk önbellek satırlarını atlar', () => {
+  const result = normalizeCachedSurahList([fatiha, null, { number: 'x' }]);
+  assert.equal(result.length, 1);
+  assert.equal(result[0].number, 1);
+});
+
+test('normalizeCachedSurahContent bozuk ayetleri atıp geçerli içeriği korur', () => {
+  const result = normalizeCachedSurahContent({
+    summary: { number: 1, name: 'الفاتحة' },
+    ayahs: [
+      { numberInSurah: 1, arabic: 'بِسْمِ اللّٰهِ', translation: 'Rahmân ve Rahîm olan Allah’ın adıyla.' },
+      null,
+      { numberInSurah: 2, arabic: '' },
+    ],
+  });
+  assert.ok(result);
+  assert.equal(result.ayahs.length, 1);
+  assert.equal(result.summary.numberOfAyahs, 1);
+});
+
+test('vahiy yeri etiketi eksik değerde çökmek yerine Mekke döner', () => {
+  assert.equal(getTurkishRevelationType(undefined), 'Mekke');
+  assert.equal(getTurkishRevelationType('Medinan'), 'Medine');
 });
