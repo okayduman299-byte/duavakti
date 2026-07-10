@@ -62,7 +62,7 @@ export function SettingsScreen({
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Uygulama hakkında</Text>
-        <Text style={styles.help}>DuaVakti 1.0.0 · Sıfırdan yeniden yazılmış sürüm.</Text>
+        <Text style={styles.help}>DuaVakti 1.2.0 · Sıfırdan yeniden yazılmış sürüm.</Text>
         <Text style={styles.help}>Namaz vakitleri: AlAdhan API. Kur’an içeriği: Al Quran Cloud API. Ağ hataları uygulamayı kapatmaz; önbellek ve tekrar deneme akışları kullanılır.</Text>
       </View>
       <View style={{ height: 120 }} />

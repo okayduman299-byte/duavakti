@@ -1,22 +1,42 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
   <application>
-    <receiver android:name=".DuaVaktiSmallWidget" android:exported="true">
+    <receiver
+      android:name="com.shaesdoes.duavakti.widget.DuaVaktiSmallWidget"
+      android:enabled="true"
+      android:exported="true"
+      android:label="@string/widget_small_name">
       <intent-filter>
         <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
       </intent-filter>
-      <meta-data android:name="android.appwidget.provider" android:resource="@xml/duavakti_widget_small_info" />
+      <meta-data
+        android:name="android.appwidget.provider"
+        android:resource="@xml/duavakti_widget_small_info" />
     </receiver>
-    <receiver android:name=".DuaVaktiMediumWidget" android:exported="true">
+
+    <receiver
+      android:name="com.shaesdoes.duavakti.widget.DuaVaktiMediumWidget"
+      android:enabled="true"
+      android:exported="true"
+      android:label="@string/widget_medium_name">
       <intent-filter>
         <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
       </intent-filter>
-      <meta-data android:name="android.appwidget.provider" android:resource="@xml/duavakti_widget_medium_info" />
+      <meta-data
+        android:name="android.appwidget.provider"
+        android:resource="@xml/duavakti_widget_medium_info" />
     </receiver>
-    <receiver android:name=".DuaVaktiLargeWidget" android:exported="true">
+
+    <receiver
+      android:name="com.shaesdoes.duavakti.widget.DuaVaktiLargeWidget"
+      android:enabled="true"
+      android:exported="true"
+      android:label="@string/widget_large_name">
       <intent-filter>
         <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
       </intent-filter>
-      <meta-data android:name="android.appwidget.provider" android:resource="@xml/duavakti_widget_large_info" />
+      <meta-data
+        android:name="android.appwidget.provider"
+        android:resource="@xml/duavakti_widget_large_info" />
     </receiver>
   </application>
 </manifest>

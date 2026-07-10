@@ -1,19 +1,256 @@
-DUAVAKTI 1.1.1 VERIFICATION
-Date: 2026-07-10
+DuaVakti 1.2.0 FINAL clean verification
+UTC: 2026-07-10T00:13:27Z
 
-PASS Clean npm ci --include=dev (480 packages)
-PASS TypeScript typecheck
-PASS Logic tests 16/16
-PASS Static verification 32/32
-PASS Expo Android prebuild
-PASS Android export bundle (622 modules, Hermes bundle produced)
-PASS Generated AndroidManifest contains Small widget receiver
-PASS Generated AndroidManifest contains Medium widget receiver
-PASS Generated AndroidManifest contains Large widget receiver
-PASS Expo autolinking resolves duavakti-widget
-PASS Expo autolinking resolves expo-audio
-PASS package-lock contains no private OpenAI development registry URLs
-PASS package-lock uses public npm registry URLs
-PASS Widget Kotlin/layout/provider source files present in release package
+== npm ci (public registry) ==
+npm warn deprecated uuid@7.0.3: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
 
-LIMITATION Final APK must be produced by EAS Build. Real-device widget picker and audio playback require device verification after installation.
+added 478 packages in 9s
+
+43 packages are looking for funding
+  run `npm fund` for details
+
+== npm run test:all ==
+
+> duavakti-rebuild@1.2.0 test:all
+> npm run typecheck && npm test
+
+
+> duavakti-rebuild@1.2.0 typecheck
+> tsc --noEmit
+
+
+> duavakti-rebuild@1.2.0 test
+> npm run test:logic && npm run verify
+
+
+> duavakti-rebuild@1.2.0 test:logic
+> tsc -p tsconfig.test.json && node --test .test-build/tests/*.test.js
+
+TAP version 13
+# Subtest: cleanPrayerTime API eklerini temizler
+ok 1 - cleanPrayerTime API eklerini temizler
+  ---
+  duration_ms: 0.737971
+  type: 'test'
+  ...
+# Subtest: normalizePrayerTimes gerekli beş vakti normalize eder
+ok 2 - normalizePrayerTimes gerekli beş vakti normalize eder
+  ---
+  duration_ms: 0.593357
+  type: 'test'
+  ...
+# Subtest: getNextPrayer gün içindeki sıradaki vakti bulur
+ok 3 - getNextPrayer gün içindeki sıradaki vakti bulur
+  ---
+  duration_ms: 0.675368
+  type: 'test'
+  ...
+# Subtest: getNextPrayer yatsıdan sonra ertesi gün sabaha döner
+ok 4 - getNextPrayer yatsıdan sonra ertesi gün sabaha döner
+  ---
+  duration_ms: 0.14214
+  type: 'test'
+  ...
+# Subtest: timeOnDate geçersiz saatleri reddeder
+ok 5 - timeOnDate geçersiz saatleri reddeder
+  ---
+  duration_ms: 0.169921
+  type: 'test'
+  ...
+# Subtest: prayerRows sıralamayı sabit tutar
+ok 6 - prayerRows sıralamayı sabit tutar
+  ---
+  duration_ms: 0.14882
+  type: 'test'
+  ...
+# Subtest: qiblaBearing sonucu 0-360 aralığındadır
+ok 7 - qiblaBearing sonucu 0-360 aralığındadır
+  ---
+  duration_ms: 1.637135
+  type: 'test'
+  ...
+# Subtest: parseSurahListPayload bozuk satırları atlar ve Türkçe adı ekler
+ok 8 - parseSurahListPayload bozuk satırları atlar ve Türkçe adı ekler
+  ---
+  duration_ms: 0.841454
+  type: 'test'
+  ...
+# Subtest: parseSurahListPayload geçersiz gövde için boş liste döner
+ok 9 - parseSurahListPayload geçersiz gövde için boş liste döner
+  ---
+  duration_ms: 0.499729
+  type: 'test'
+  ...
+# Subtest: parseSurahEditionsPayload Arapça, meali ve sesi ayet numarasına göre eşler
+ok 10 - parseSurahEditionsPayload Arapça, meali ve sesi ayet numarasına göre eşler
+  ---
+  duration_ms: 0.376727
+  type: 'test'
+  ...
+# Subtest: parseSurahEditionsPayload eksik veriyle çökmek yerine null döner
+ok 11 - parseSurahEditionsPayload eksik veriyle çökmek yerine null döner
+  ---
+  duration_ms: 0.169
+  type: 'test'
+  ...
+# Subtest: Türkçe arama aksan ve büyük-küçük harfe dayanıklıdır
+ok 12 - Türkçe arama aksan ve büyük-küçük harfe dayanıklıdır
+  ---
+  duration_ms: 0.411528
+  type: 'test'
+  ...
+# Subtest: pad2 iki haneli çıktı üretir
+ok 13 - pad2 iki haneli çıktı üretir
+  ---
+  duration_ms: 0.634638
+  type: 'test'
+  ...
+# Subtest: tarih formatları beklenen servis biçimlerindedir
+ok 14 - tarih formatları beklenen servis biçimlerindedir
+  ---
+  duration_ms: 0.4905
+  type: 'test'
+  ...
+# Subtest: formatCountdown negatif süreyi sıfırda tutar
+ok 15 - formatCountdown negatif süreyi sıfırda tutar
+  ---
+  duration_ms: 0.178884
+  type: 'test'
+  ...
+# Subtest: dayIndex her zaman dizi aralığında kalır
+ok 16 - dayIndex her zaman dizi aralığında kalır
+  ---
+  duration_ms: 0.231142
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 113.332649
+
+> duavakti-rebuild@1.2.0 verify
+> node scripts/verify.mjs
+
+PASS 52
+  ✓ Gerekli kaynak dosyaları mevcut
+  ✓ Paket sürümü 1.2.0
+  ✓ Yerel widget modülü npm file bağımlılığı değil
+  ✓ Preview APK gereksiz dev-client bağımlılığı taşımıyor
+  ✓ expo-audio için gerekli expo-asset doğrudan kurulu
+  ✓ package-lock yalnız genel npm adreslerini kullanıyor
+  ✓ Expo uygulama sürümü 1.2.0
+  ✓ Android versionCode 7
+  ✓ Kırılgan widget config plugin kaldırıldı
+  ✓ expo-audio config plugin bağlı
+  ✓ Kök hata sınırı etkin
+  ✓ HomeScreen uygulamaya bağlı
+  ✓ QuranScreen uygulamaya bağlı
+  ✓ DuasScreen uygulamaya bağlı
+  ✓ WidgetScreen uygulamaya bağlı
+  ✓ SettingsScreen uygulamaya bağlı
+  ✓ Kur’an ağ/yükleme hataları yakalanıyor
+  ✓ Kur’an tekrar deneme akışı var
+  ✓ Son okunan sure saklanıyor
+  ✓ Liste ve okuyucu yükleme durumları ayrık
+  ✓ Ayet sesli dinleme akışı bağlı
+  ✓ Kur’an ekranında Türkçe sure adları kullanılıyor
+  ✓ 114 Türkçe sure adı kaynakta mevcut
+  ✓ Kur’an servis uç noktası tanımlı
+  ✓ Diyanet Türkçe meal sürümü tanımlı
+  ✓ Mişârî el-Afâsî sesli tilavet sürümü tanımlı
+  ✓ Kur’an çevrimdışı önbellek dönüşü var
+  ✓ Namaz vakti servis uç noktası tanımlı
+  ✓ Diyanet hesaplama yöntemi seçili
+  ✓ Namaz vakti çevrimdışı önbellek dönüşü var
+  ✓ Widget modülü SDK 57 Expo module Gradle plugin kullanıyor
+  ✓ Eski ExpoModulesCorePlugin.gradle yaklaşımı kaldırıldı
+  ✓ Widget modülü compileSdk değerini elle yönetmiyor
+  ✓ Widget Android namespace tanımlı
+  ✓ Widget Expo modülü autolinking yapılandırmasında
+  ✓ DuaVaktiSmallWidget modül manifestinde kayıtlı
+  ✓ DuaVaktiMediumWidget modül manifestinde kayıtlı
+  ✓ DuaVaktiLargeWidget modül manifestinde kayıtlı
+  ✓ duavakti_widget_small_info widget metadata kaynağı bağlı
+  ✓ duavakti_widget_medium_info widget metadata kaynağı bağlı
+  ✓ duavakti_widget_large_info widget metadata kaynağı bağlı
+  ✓ Widget small yalnız destekli RemoteViews sınıflarını kullanıyor
+  ✓ Widget small kök tıklama ID'sine sahip
+  ✓ Widget medium yalnız destekli RemoteViews sınıflarını kullanıyor
+  ✓ Widget medium kök tıklama ID'sine sahip
+  ✓ Widget large yalnız destekli RemoteViews sınıflarını kullanıyor
+  ✓ Widget large kök tıklama ID'sine sahip
+  ✓ Üç widget da home_screen kategorisinde
+  ✓ Üç widget provider dosyasında initialLayout var
+  ✓ Native widget köprüsü doğru modül adıyla kayıtlı
+  ✓ Widget güncelleme çağrısı native köprüde bağlı
+  ✓ Kaynakta TODO/FIXME kalmadı
+STATIC VERIFICATION: PASS
+
+== expo prebuild ==
+- Creating native directory (./android)
+✔ Created native directory
+- Updating package.json
+✔ Updated package.json | no changes
+- Running prebuild
+✔ Finished prebuild
+
+== prebuild verification ==
+
+> duavakti-rebuild@1.2.0 verify:prebuild
+> node scripts/verify-prebuild.mjs
+
+PASS 13
+  ✓ Expo prebuild Android projesi üretti
+  ✓ Expo autolinking çözümlemesi çalıştı
+  ✓ Yerel widget paketi autolinking tarafından bulundu
+  ✓ Autolinking doğru widget Android klasörünü kullanıyor
+  ✓ Native widget modülü autolinking listesinde
+  ✓ Ana uygulama compileSdk değerini Expo kök projesinden alıyor
+  ✓ Yerel modül resmi Expo module Gradle plugin kullanıyor
+  ✓ Kurulu Expo module plugin SDK varsayılanlarını uyguluyor
+  ✓ Kurulu Expo module plugin compileSdk 36 geri dönüşüne sahip
+  ✓ Widget modül manifestinde tam 3 receiver var
+  ✓ duavakti_widget_small_info.xml mevcut
+  ✓ duavakti_widget_medium_info.xml mevcut
+  ✓ duavakti_widget_large_info.xml mevcut
+PREBUILD VERIFICATION: PASS
+
+== expo config ==
+{
+  name: 'DuaVakti',
+  slug: 'duavakti',
+  version: '1.2.0',
+  androidPackage: 'com.shaesdoes.duavakti',
+  versionCode: 7,
+  projectId: 'b6ba130a-5c98-4a7b-b815-1a87526bf083'
+}
+
+== Android export ==
+Starting Metro Bundler
+
+Android Bundled 4797ms index.ts (622 modules)
+
+› android bundles (1):
+_expo/static/js/android/index-22518a97448e91adea96ed2a51df055b.hbc (1.6MB)
+
+› Files (1):
+metadata.json (150B)
+
+Exported: dist
+
+== XML parse ==
+XML PASS 9
+
+== Git tracking simulation ==
+Tracked widget files: 17
+rebuild/modules/duavakti-widget/android/build.gradle
+rebuild/modules/duavakti-widget/android/src/main/res/xml/duavakti_widget_large_info.xml
+rebuild/modules/duavakti-widget/android/src/main/res/xml/duavakti_widget_medium_info.xml
+rebuild/modules/duavakti-widget/android/src/main/res/xml/duavakti_widget_small_info.xml
+
+CLEAN VERIFICATION: PASS

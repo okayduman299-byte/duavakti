@@ -1,5 +1,8 @@
 <resources>
-  <string name="widget_small_description">Sıradaki namaz vaktini gösterir</string>
-  <string name="widget_medium_description">Sıradaki vakti ve kalan süreyi gösterir</string>
-  <string name="widget_large_description">Günün tüm namaz vakitlerini gösterir</string>
+  <string name="widget_small_name">DuaVakti · Küçük</string>
+  <string name="widget_medium_name">DuaVakti · Orta</string>
+  <string name="widget_large_name">DuaVakti · Büyük</string>
+  <string name="widget_small_description">Sıradaki namaz vaktini gösterir.</string>
+  <string name="widget_medium_description">Sıradaki vakti ve kalan süreyi gösterir.</string>
+  <string name="widget_large_description">Bugünün namaz vakitlerini gösterir.</string>
 </resources>

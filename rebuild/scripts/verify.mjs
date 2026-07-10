@@ -15,6 +15,10 @@ function read(rel) {
   return fs.readFileSync(path.join(root, rel), 'utf8');
 }
 
+function exists(rel) {
+  return fs.existsSync(path.join(root, rel));
+}
+
 const required = [
   'index.ts',
   'App.tsx',
@@ -24,16 +28,37 @@ const required = [
   'src/screens/WidgetScreen.tsx',
   'src/screens/SettingsScreen.tsx',
   'src/data/surahNames.ts',
-  'plugins/withDuaVaktiWidgets.js',
   'src/components/ErrorBoundary.tsx',
   'src/lib/prayerService.ts',
   'src/lib/quranService.ts',
+  'modules/duavakti-widget/expo-module.config.json',
+  'modules/duavakti-widget/android/build.gradle',
   'modules/duavakti-widget/android/src/main/AndroidManifest.xml',
+  'modules/duavakti-widget/android/src/main/java/com/shaesdoes/duavakti/widget/DuaVaktiWidgetModule.kt',
   'modules/duavakti-widget/android/src/main/res/layout/duavakti_widget_small.xml',
   'modules/duavakti-widget/android/src/main/res/layout/duavakti_widget_medium.xml',
   'modules/duavakti-widget/android/src/main/res/layout/duavakti_widget_large.xml',
+  'modules/duavakti-widget/android/src/main/res/xml/duavakti_widget_small_info.xml',
+  'modules/duavakti-widget/android/src/main/res/xml/duavakti_widget_medium_info.xml',
+  'modules/duavakti-widget/android/src/main/res/xml/duavakti_widget_large_info.xml',
 ];
-check(required.every((file) => fs.existsSync(path.join(root, file))), 'Gerekli kaynak dosyaları mevcut');
+check(required.every(exists), 'Gerekli kaynak dosyaları mevcut');
+
+const pkg = JSON.parse(read('package.json'));
+check(pkg.version === '1.2.0', 'Paket sürümü 1.2.0');
+check(!('duavakti-widget' in (pkg.dependencies ?? {})), 'Yerel widget modülü npm file bağımlılığı değil');
+check(!('expo-dev-client' in (pkg.dependencies ?? {})), 'Preview APK gereksiz dev-client bağımlılığı taşımıyor');
+check(pkg.dependencies?.['expo-asset'] === '~57.0.3', 'expo-audio için gerekli expo-asset doğrudan kurulu');
+
+const lock = read('package-lock.json');
+check(!/internal\.api\.openai\.org|applied-caas|artifactory\/api\/npm/i.test(lock), 'package-lock yalnız genel npm adreslerini kullanıyor');
+
+const appConfig = JSON.parse(read('app.json'));
+check(appConfig.expo?.version === '1.2.0', 'Expo uygulama sürümü 1.2.0');
+check(appConfig.expo?.android?.versionCode === 7, 'Android versionCode 7');
+const plugins = appConfig.expo?.plugins ?? [];
+check(!plugins.some((entry) => entry === './plugins/withDuaVaktiWidgets'), 'Kırılgan widget config plugin kaldırıldı');
+check(plugins.some((entry) => Array.isArray(entry) && entry[0] === 'expo-audio'), 'expo-audio config plugin bağlı');
 
 const app = read('App.tsx');
 check(app.includes('<ErrorBoundary>'), 'Kök hata sınırı etkin');
@@ -49,10 +74,14 @@ check(quran.includes('readerLoading') && quran.includes('listLoading'), 'Liste v
 check(quran.includes('useAudioPlayer') && quran.includes('toggleAyahAudio'), 'Ayet sesli dinleme akışı bağlı');
 check(quran.includes('turkishName'), 'Kur’an ekranında Türkçe sure adları kullanılıyor');
 
+const surahNames = read('src/data/surahNames.ts');
+const quotedNames = [...surahNames.matchAll(/'([^']+)'/g)].map((m) => m[1]);
+check(quotedNames.length >= 114, '114 Türkçe sure adı kaynakta mevcut', `bulunan: ${quotedNames.length}`);
+
 const quranService = read('src/lib/quranService.ts');
 check(quranService.includes('api.alquran.cloud/v1/surah'), 'Kur’an servis uç noktası tanımlı');
-check(quranService.includes("tr.diyanet"), 'Diyanet Türkçe meal sürümü tanımlı');
-check(quranService.includes("ar.alafasy"), 'Mişârî el-Afâsî sesli tilavet sürümü tanımlı');
+check(quranService.includes('tr.diyanet'), 'Diyanet Türkçe meal sürümü tanımlı');
+check(quranService.includes('ar.alafasy'), 'Mişârî el-Afâsî sesli tilavet sürümü tanımlı');
 check(quranService.includes("source: 'cache'"), 'Kur’an çevrimdışı önbellek dönüşü var');
 
 const prayerService = read('src/lib/prayerService.ts');
@@ -60,13 +89,22 @@ check(prayerService.includes('api.aladhan.com/v1/timings'), 'Namaz vakti servis 
 check(prayerService.includes('method=13'), 'Diyanet hesaplama yöntemi seçili');
 check(prayerService.includes("source: 'cache'"), 'Namaz vakti çevrimdışı önbellek dönüşü var');
 
-const widgetPlugin = read('plugins/withDuaVaktiWidgets.js');
+const moduleGradle = read('modules/duavakti-widget/android/build.gradle');
+check(moduleGradle.includes("id 'expo-module-gradle-plugin'"), 'Widget modülü SDK 57 Expo module Gradle plugin kullanıyor');
+check(!moduleGradle.includes('ExpoModulesCorePlugin.gradle'), 'Eski ExpoModulesCorePlugin.gradle yaklaşımı kaldırıldı');
+check(!moduleGradle.includes('safeExtGet("compileSdkVersion"'), 'Widget modülü compileSdk değerini elle yönetmiyor');
+check(moduleGradle.includes('namespace "com.shaesdoes.duavakti.widget"'), 'Widget Android namespace tanımlı');
+
+const moduleConfig = JSON.parse(read('modules/duavakti-widget/expo-module.config.json'));
+check(moduleConfig.android?.modules?.includes('com.shaesdoes.duavakti.widget.DuaVaktiWidgetModule'), 'Widget Expo modülü autolinking yapılandırmasında');
+
+const manifest = read('modules/duavakti-widget/android/src/main/AndroidManifest.xml');
 for (const name of ['DuaVaktiSmallWidget', 'DuaVaktiMediumWidget', 'DuaVaktiLargeWidget']) {
-  check(widgetPlugin.includes(`com.shaesdoes.duavakti.widget.${name}`), `${name} ana uygulama manifestine config plugin ile kayıtlı`);
+  check(manifest.includes(`com.shaesdoes.duavakti.widget.${name}`), `${name} modül manifestinde kayıtlı`);
 }
-check(widgetPlugin.includes('withAndroidManifest'), 'Widget manifest yapılandırması CNG config plugin kullanıyor');
-check(widgetPlugin.includes('withDangerousMod') && widgetPlugin.includes('copyDirectory'), 'Widget Android kaynakları uygulama modülüne kopyalanıyor');
-check(widgetPlugin.includes("'app',") && widgetPlugin.includes("'src',") && widgetPlugin.includes("'main',") && widgetPlugin.includes("'res',"), 'Widget kaynak hedefi android/app/src/main/res');
+for (const resource of ['duavakti_widget_small_info', 'duavakti_widget_medium_info', 'duavakti_widget_large_info']) {
+  check(manifest.includes(`@xml/${resource}`), `${resource} widget metadata kaynağı bağlı`);
+}
 
 const allowedLayouts = new Set(['LinearLayout', 'TextView']);
 for (const size of ['small', 'medium', 'large']) {
@@ -81,19 +119,24 @@ for (const size of ['small', 'medium', 'large']) {
 }
 
 const infoFiles = ['small', 'medium', 'large'].map((size) => `modules/duavakti-widget/android/src/main/res/xml/duavakti_widget_${size}_info.xml`);
-check(infoFiles.every((file) => read(file).includes('resizeMode="none"')), 'Widget boyutları sabit ve güvenli');
+check(infoFiles.every((file) => read(file).includes('android:widgetCategory="home_screen"')), 'Üç widget da home_screen kategorisinde');
+check(infoFiles.every((file) => read(file).includes('android:initialLayout=')), 'Üç widget provider dosyasında initialLayout var');
+
+const nativeModule = read('modules/duavakti-widget/android/src/main/java/com/shaesdoes/duavakti/widget/DuaVaktiWidgetModule.kt');
+check(nativeModule.includes('Name("DuaVaktiWidget")'), 'Native widget köprüsü doğru modül adıyla kayıtlı');
+check(nativeModule.includes('updateAllWidgets(context)'), 'Widget güncelleme çağrısı native köprüde bağlı');
 
 const sourceFiles = [];
 function collect(dir) {
   for (const item of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (['node_modules', '.test-build'].includes(item.name)) continue;
+    if (['node_modules', '.test-build', 'android', 'ios'].includes(item.name)) continue;
     const full = path.join(dir, item.name);
     if (item.isDirectory()) collect(full);
-    else if (/\.(ts|tsx|js|mjs|kt|xml)$/.test(item.name)) sourceFiles.push(full);
+    else if (/\.(ts|tsx|js|mjs|kt|xml|gradle)$/.test(item.name)) sourceFiles.push(full);
   }
 }
 collect(root);
-const markerPattern = new RegExp('\\b(' + ['TO', 'DO'].join('') + '|' + ['FIX', 'ME'].join('') + ')\\b');
+const markerPattern = /\b(TODO|FIXME)\b/;
 const markerHits = sourceFiles.filter((file) => path.resolve(file) !== path.resolve(root, 'scripts/verify.mjs') && markerPattern.test(fs.readFileSync(file, 'utf8')));
 check(markerHits.length === 0, 'Kaynakta TODO/FIXME kalmadı', markerHits.map((x) => path.relative(root, x)).join(', '));
 

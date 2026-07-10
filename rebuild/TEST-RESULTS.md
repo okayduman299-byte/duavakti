@@ -1,38 +1,49 @@
-# DuaVakti 1.1.3 Doğrulama Sonuçları
+# DuaVakti 1.2.0 FINAL — Test Sonuçları
 
-## Gerçek hata ve düzeltme
+## Temiz doğrulama özeti
 
-EAS Prebuild hatası:
+- Genel npm kayıt adresiyle temiz `npm ci`: PASS — 478 paket
+- TypeScript: PASS
+- Mantık testleri: PASS — 16/16
+- Statik proje doğrulaması: PASS — 52/52
+- Expo Android prebuild: PASS
+- Expo Autolinking çözümlemesi: PASS
+- Prebuild/native modül doğrulaması: PASS — 13/13
+- Android Hermes/Metro export: PASS — 622 modül
+- XML parse doğrulaması: PASS — 9 dosya
+- Git takip simülasyonunda widget modülü: PASS — 17 dosya
+- Expo config çözümleme: PASS
+- Expo Doctor: 18/20 PASS; kalan 2 kontrol yalnız ağ erişimi olmadığı için Expo API/React Native Directory bağlantısı kuramadı
 
-`Widget kaynak klasörü bulunamadı: modules/duavakti-widget/android/src/main/res`
+## Regresyon kontrolleri
 
-Kök neden, önceki `.gitignore` dosyasındaki `android/` kuralının Git tarafından her seviyedeki `android` klasörlerine uygulanmasıydı. Bu nedenle ZIP içinde bulunan `modules/duavakti-widget/android/` klasörü, GitHub Actions `git add rebuild` aşamasında commit'e girmiyordu.
+### Widget build mimarisi
 
-1.1.3'te kural `/android/` olarak düzeltildi. Böylece yalnız proje kökündeki oluşturulmuş Android klasörü ignore edilir; widget modülünün Android kaynakları Git'e dahil edilir.
+- `modules/duavakti-widget/android/build.gradle` güncel `expo-module-gradle-plugin` kullanıyor.
+- Eski `ExpoModulesCorePlugin.gradle` yaklaşımı yok.
+- Elle `safeExtGet("compileSdkVersion", ...)` yok.
+- Expo SDK 57'nin kurulu module Gradle plugin'i `compileSdk/minSdk/targetSdk` değerlerini uygular.
+- Expo Autolinking yerel `duavakti-widget` paketini ve `DuaVaktiWidgetModule` sınıfını buluyor.
+- Modül manifestinde tam 3 AppWidget receiver var.
+- Küçük/orta/büyük provider XML kaynakları mevcut.
+- Widget layoutları yalnız RemoteViews destekli sınıfları kullanıyor.
 
-## Çalıştırılan kontroller
+### Kur’an
 
-- Temiz `npm ci --include=dev`: **PASS — 480 paket**
-- TypeScript `tsc --noEmit`: **PASS**
-- Mantık testleri: **16/16 PASS**
-- Statik doğrulama: **34/34 PASS**
-- `expo prebuild --platform android --clean --no-install`: **PASS**
-- Android Hermes export: **PASS — 622 modül**
-- Prebuild sonrası ana uygulama widget provider XML dosyaları: **3/3 mevcut**
-- Prebuild sonrası AndroidManifest widget receiver kayıtları: **3/3 mevcut**
-- GitHub Actions akışını taklit eden geçici Git deposunda `git add rebuild`: **PASS**
-- Git tarafından staged edilen widget Android dosyaları: **15 dosya**
-- Git tarafından staged edilen widget provider XML dosyaları: **3/3**
+- 114 Türkçe sure adı kaynakta mevcut.
+- Diyanet meal edition tanımlı.
+- Alafasy ses edition tanımlı.
+- Ayet audio URL eşleştirme testi PASS.
+- Türkçe arama aksan/büyük-küçük harf testi PASS.
+- Kur’an hata yakalama, tekrar deneme ve cache akışları statik doğrulandı.
 
-## Doğrudan doğrulanan kritik dosyalar
+### Paket güvenilirliği
 
-- `modules/duavakti-widget/android/src/main/res/xml/duavakti_widget_small_info.xml`
-- `modules/duavakti-widget/android/src/main/res/xml/duavakti_widget_medium_info.xml`
-- `modules/duavakti-widget/android/src/main/res/xml/duavakti_widget_large_info.xml`
-- `modules/duavakti-widget/android/src/main/java/.../DuaVaktiSmallWidget.kt`
-- `modules/duavakti-widget/android/src/main/java/.../DuaVaktiMediumWidget.kt`
-- `modules/duavakti-widget/android/src/main/java/.../DuaVaktiLargeWidget.kt`
+- `package-lock.json` içinde özel OpenAI/Artifactory npm adresi yok.
+- `expo-audio` için gereken `expo-asset` doğrudan kurulu.
+- Gereksiz `expo-dev-client` preview APK bağımlılığından çıkarıldı.
+- Widget modülü artık npm `file:` bağımlılığı değil; `modules/` üzerinden autolink edilir.
 
-## Sınır
+## Gerçekçi sınır
 
-Tam yerel Gradle release derlemesi bu çalışma ortamında Gradle dağıtımını internetten indirememe nedeniyle çalıştırılamadı. Ancak önceki EAS hatası Gradle aşamasında değil, kaynak klasörü Git commit'inde bulunmadığı için Prebuild aşamasında oluşuyordu. Bu spesifik neden, gerçek Git staging simülasyonu ve başarılı Expo prebuild ile doğrulandı.
+Bu çalışma ortamında Android SDK/Gradle dağıtımına ağ erişimi olmadığı için tam yerel `assembleRelease` çalıştırılamadı. Buna karşılık daha önce EAS'ta hata veren Gradle mimarisi tamamen kaldırıldı ve yerine Expo SDK 57'nin güncel resmi yerel modül yapısı kullanıldı. Prebuild ve autolinking aşamaları temiz şekilde doğrulandı.

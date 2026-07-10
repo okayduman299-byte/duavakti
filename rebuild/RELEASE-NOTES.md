@@ -1,18 +1,38 @@
-# DuaVakti 1.1.3
+# DuaVakti 1.2.0 FINAL
 
-Bu sürüm, EAS Prebuild sırasında widget kaynak klasörünün bulunamaması hatasını düzeltir.
+## Neden yeni bir final sürüm hazırlandı?
 
-## Düzeltilen hata
+Önceki EAS denemelerinde widget tarafında art arda üç ayrı native build sorunu görüldü:
 
-Önceki pakette `.gitignore` içindeki `android/` kuralı yalnız proje kökündeki Android klasörünü değil, `modules/duavakti-widget/android/` klasörünü de Git tarafından yok sayıyordu. GitHub Actions ZIP'i doğru açsa bile widget'ın Kotlin ve Android kaynak dosyaları commit'e girmiyordu. EAS bu nedenle:
+1. App manifestinin referans verdiği widget XML kaynakları bulunamadı.
+2. Widget kaynak klasörü GitHub commit'ine girmedi.
+3. Yerel widget modülü `compileSdk` yapılandırmasını doğru şekilde alamadı.
 
-`Widget kaynak klasörü bulunamadı: modules/duavakti-widget/android/src/main/res`
+Bu sorunları tek tek yama yapmak yerine widget mimarisi baştan sadeleştirildi.
 
-hatasıyla prebuild aşamasında duruyordu.
+## Temel düzeltme
 
-## 1.1.3 düzeltmesi
+Widget modülü artık Expo SDK 57'nin güncel yerel Expo Module şablonunu kullanır:
 
-- `.gitignore` kuralı `android/` yerine `/android/` yapıldı.
-- Böylece yalnız Expo'nun kökte ürettiği native Android klasörü ignore edilir.
-- `modules/duavakti-widget/android/` artık GitHub commit'ine dahil edilir.
-- Uygulama sürümü 1.1.3, Android versionCode 5 olarak güncellendi.
+- Android Gradle plugin: `expo-module-gradle-plugin`
+- Expo Autolinking: `modules/duavakti-widget`
+- Receiver kayıtları: modül `AndroidManifest.xml`
+- Widget layout/provider kaynakları: modül `android/src/main/res`
+- Eski kaynak kopyalama config plugin'i: kaldırıldı
+- Eski `ExpoModulesCorePlugin.gradle` yaklaşımı: kaldırıldı
+- Elle `compileSdkVersion safeExtGet(...)`: kaldırıldı
+
+Bu değişiklik, EAS logunda görülen `project ':duavakti-widget' does not specify compileSdk` hatasının kök sebebini ortadan kaldırır.
+
+## Kur’an tarafı
+
+- 114 Türkçe sure adı korunur.
+- Türkçe adlarla arama yapılır.
+- Diyanet Türkçe meal korunur.
+- `ar.alafasy` sesli tilavet akışı korunur.
+- `expo-audio` için gereken `expo-asset` doğrudan bağımlılık olarak eklendi.
+
+## Sürüm
+
+- Uygulama: 1.2.0
+- Android versionCode: 7
