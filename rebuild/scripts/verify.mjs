@@ -29,6 +29,8 @@ const required = [
   'src/screens/SettingsScreen.tsx',
   'src/components/QiblaCompass.tsx',
   'src/lib/qibla.ts',
+  'src/lib/notificationPlan.ts',
+  'src/lib/notificationService.ts',
   'src/data/surahNames.ts',
   'src/components/ErrorBoundary.tsx',
   'src/lib/prayerService.ts',
@@ -49,23 +51,27 @@ const required = [
 check(required.every(exists), 'Gerekli kaynak dosyaları mevcut');
 
 const pkg = JSON.parse(read('package.json'));
-check(pkg.version === '1.4.2', 'Paket sürümü 1.4.2');
+check(pkg.version === '1.5.0', 'Paket sürümü 1.5.0');
 check(!('duavakti-widget' in (pkg.dependencies ?? {})), 'Yerel widget modülü npm file bağımlılığı değil');
 check(!('expo-dev-client' in (pkg.dependencies ?? {})), 'Preview APK gereksiz dev-client bağımlılığı taşımıyor');
 check(pkg.dependencies?.['expo-asset'] === '~57.0.3', 'expo-audio için gerekli expo-asset doğrudan kurulu');
+check(pkg.dependencies?.['expo-notifications'] === '~57.0.3', 'expo-notifications SDK 57 sürümü kurulu');
 
 const lock = read('package-lock.json');
 check(!/internal\.api\.openai\.org|applied-caas|artifactory\/api\/npm/i.test(lock), 'package-lock yalnız genel npm adreslerini kullanıyor');
 
 const appConfig = JSON.parse(read('app.json'));
-check(appConfig.expo?.version === '1.4.2', 'Expo uygulama sürümü 1.4.2');
-check(appConfig.expo?.android?.versionCode === 11, 'Android versionCode 11');
+check(appConfig.expo?.version === '1.5.0', 'Expo uygulama sürümü 1.5.0');
+check(appConfig.expo?.android?.versionCode === 12, 'Android versionCode 12');
 const plugins = appConfig.expo?.plugins ?? [];
 check(!plugins.some((entry) => entry === './plugins/withDuaVaktiWidgets'), 'Kırılgan widget config plugin kaldırıldı');
 check(plugins.some((entry) => Array.isArray(entry) && entry[0] === 'expo-audio'), 'expo-audio config plugin bağlı');
+check(plugins.some((entry) => Array.isArray(entry) && entry[0] === 'expo-notifications'), 'expo-notifications config plugin bağlı');
+check(appConfig.expo?.android?.permissions?.includes('POST_NOTIFICATIONS'), 'Android bildirim izni manifest yapılandırmasında');
 
 const app = read('App.tsx');
 check(app.includes('resetKey={tab}') && app.includes('<ErrorBoundary key={tab}'), 'Sekme bazlı hata sınırı etkin');
+check(app.includes('syncPrayerNotifications'), 'Uygulama ezan vakti bildirimlerini senkronluyor');
 for (const screen of ['HomeScreen', 'QuranScreen', 'DuasScreen', 'WidgetScreen', 'SettingsScreen']) {
   check(app.includes(screen), `${screen} uygulamaya bağlı`);
 }
@@ -80,6 +86,8 @@ check(quran.includes('Tümünü dinle') && quran.includes('player.replace') && q
 check(quran.includes('turkishName'), 'Kur’an ekranında Türkçe sure adları kullanılıyor');
 check(quran.includes('normalizeSurahSummary'), 'Kur’an sure açılışı bozuk/eski özet verisini normalize ediyor');
 check(quran.includes('audioError') && quran.includes('try {'), 'Kur’an ses işlemleri ekranı çökertmeyecek şekilde korunuyor');
+check(quran.includes('mountedRef') && quran.includes('if (!mountedRef.current) return'), 'Kur’an kapanırken geç gelen async sonuçlar state güncellemiyor');
+check(!quran.includes('return () => {\n      player.pause();'), 'Kur’an unmount sırasında native player elle durdurulmuyor');
 
 const surahNames = read('src/data/surahNames.ts');
 const quotedNames = [...surahNames.matchAll(/'([^']+)'/g)].map((m) => m[1]);
@@ -97,6 +105,12 @@ const prayerService = read('src/lib/prayerService.ts');
 check(prayerService.includes('api.aladhan.com/v1/timings'), 'Namaz vakti servis uç noktası tanımlı');
 check(prayerService.includes('method=13'), 'Diyanet hesaplama yöntemi seçili');
 check(prayerService.includes("source: 'cache'"), 'Namaz vakti çevrimdışı önbellek dönüşü var');
+
+const notificationService = read('src/lib/notificationService.ts');
+check(notificationService.includes('DAYS_TO_SCHEDULE = 7'), 'Ezan uyarıları 7 günlük planlanıyor');
+check(notificationService.includes('requestPermissionsAsync') && notificationService.includes('setNotificationChannelAsync'), 'Bildirim izni ve Android kanalı yapılandırılıyor');
+check(notificationService.includes('scheduleNotificationAsync') && notificationService.includes('SchedulableTriggerInputTypes.DATE'), 'Ezan vakitleri kesin tarih tetikleyicileriyle planlanıyor');
+check(notificationService.includes('cancelPrayerNotifications'), 'Eski ezan bildirimleri yeniden planlamadan önce temizleniyor');
 
 const moduleGradle = read('modules/duavakti-widget/android/build.gradle');
 check(moduleGradle.includes("id 'expo-module-gradle-plugin'"), 'Widget modülü SDK 57 Expo module Gradle plugin kullanıyor');
@@ -130,16 +144,19 @@ for (const size of ['small', 'medium', 'large', 'dua']) {
 const infoFiles = ['small', 'medium', 'large', 'dua'].map((size) => `modules/duavakti-widget/android/src/main/res/xml/duavakti_widget_${size}_info.xml`);
 check(infoFiles.every((file) => read(file).includes('android:widgetCategory="home_screen"')), 'Dört widget da home_screen kategorisinde');
 check(infoFiles.every((file) => read(file).includes('android:initialLayout=')), 'Dört widget provider dosyasında initialLayout var');
+check(infoFiles.every((file) => read(file).includes('android:updatePeriodMillis="3600000"')), 'Dört widget saatlik güncelleme aralığında');
+const widgetSupport = read('modules/duavakti-widget/android/src/main/java/com/shaesdoes/duavakti/widget/WidgetSupport.kt');
+check(widgetSupport.includes('HOUR_OF_DAY') && widgetSupport.includes('hourlyDua'), 'Widget duası yerel saate göre her saat değişiyor');
 
 const nativeModule = read('modules/duavakti-widget/android/src/main/java/com/shaesdoes/duavakti/widget/DuaVaktiWidgetModule.kt');
 check(nativeModule.includes('Name("DuaVaktiWidget")'), 'Native widget köprüsü doğru modül adıyla kayıtlı');
 check(nativeModule.includes('updateAllWidgets(context)'), 'Widget güncelleme çağrısı native köprüde bağlı');
 check(nativeModule.includes('putString("duas"'), 'Dua listesi native widget verisine kaydediliyor');
 const duaWidget = read('modules/duavakti-widget/android/src/main/java/com/shaesdoes/duavakti/widget/DuaVaktiDuaWidget.kt');
-check(duaWidget.includes('data.dailyDua'), 'Günün duası widgetı günlük dua verisini gösteriyor');
+check(duaWidget.includes('data.hourlyDua'), 'Dua widgetı saatlik dua verisini gösteriyor');
 for (const size of ['Small', 'Medium', 'Large']) {
   const provider = read(`modules/duavakti-widget/android/src/main/java/com/shaesdoes/duavakti/widget/DuaVakti${size}Widget.kt`);
-  check(provider.includes('data.dailyDua'), `${size} widget günlük dua verisini de gösteriyor`);
+  check(provider.includes('data.hourlyDua'), `${size} widget saatlik dua verisini de gösteriyor`);
 }
 for (const size of ['small', 'medium', 'large']) {
   const layout = read(`modules/duavakti-widget/android/src/main/res/layout/duavakti_widget_${size}.xml`);
@@ -161,6 +178,7 @@ check(qiblaCompass.includes('relativeQiblaAngle'), 'Kıble oku telefon yönüne 
 check(qiblaCompass.includes('subscription?.remove()'), 'Kıble pusulası aboneliği ekran kapanınca temizleniyor');
 const settingsScreen = read('src/screens/SettingsScreen.tsx');
 check(settingsScreen.includes('<QiblaCompass'), 'Canlı kıble pusulası ayarlar ekranına bağlı');
+check(settingsScreen.includes('Ezan vakti uyarıları') && settingsScreen.includes('prayerNotifications'), 'Ayarlar ekranında ezan uyarısı anahtarı var');
 
 const sourceFiles = [];
 function collect(dir) {

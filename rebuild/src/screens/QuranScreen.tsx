@@ -46,6 +46,11 @@ export function QuranScreen({
   const [source, setSource] = useState<"network" | "cache" | null>(null);
   const [lastRead, setLastRead] = useState<number | null>(null);
   const ayahListRef = useRef<FlatList<AyahPair>>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => () => {
+    mountedRef.current = false;
+  }, []);
 
   // Tek bir AudioPlayer kullanıyoruz. Önceki AudioPlaylist yaklaşımı bazı Android
   // cihazlarında sure detayına girerken JS tarafında bölüm hatasına yol açıyordu.
@@ -68,11 +73,11 @@ export function QuranScreen({
     void setAudioModeAsync({
       playsInSilentMode: true,
       interruptionMode: "doNotMix",
-    });
-    return () => {
-      player.pause();
-    };
-  }, [player]);
+    }).catch(() => undefined);
+    // useAudioPlayer kendi yaşam döngüsünü yönetir ve ekran kapanınca otomatik
+    // serbest bırakılır. Unmount sırasında elle pause etmek bazı Android
+    // cihazlarında Kur’an -> Dualar geçişinde native yarış durumuna yol açıyordu.
+  }, []);
 
   useEffect(() => {
     const wasFinished = lastDidFinishRef.current;
@@ -121,20 +126,21 @@ export function QuranScreen({
     setError(null);
     try {
       const result = await loadSurahList();
+      if (!mountedRef.current) return;
       setList(result.data);
       setSource(result.source);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sure listesi alınamadı.");
+      if (mountedRef.current) setError(err instanceof Error ? err.message : "Sure listesi alınamadı.");
     } finally {
-      setListLoading(false);
+      if (mountedRef.current) setListLoading(false);
     }
   };
 
   useEffect(() => {
     void fetchList();
-    readJson<{ surah: number }>(LAST_READ_KEY).then((value) =>
-      setLastRead(value?.surah ?? null),
-    );
+    readJson<{ surah: number }>(LAST_READ_KEY).then((value) => {
+      if (mountedRef.current) setLastRead(value?.surah ?? null);
+    });
   }, []);
 
   const stopAudio = () => {
@@ -161,6 +167,7 @@ export function QuranScreen({
     setError(null);
     try {
       const result = await loadSurah(safeSummary.number);
+      if (!mountedRef.current) return;
       setContent(result.data);
       setSource(result.source);
       setLastRead(safeSummary.number);
@@ -169,9 +176,9 @@ export function QuranScreen({
         updatedAt: new Date().toISOString(),
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sure açılamadı.");
+      if (mountedRef.current) setError(err instanceof Error ? err.message : "Sure açılamadı.");
     } finally {
-      setReaderLoading(false);
+      if (mountedRef.current) setReaderLoading(false);
     }
   };
 

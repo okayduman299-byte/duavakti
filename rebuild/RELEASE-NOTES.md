@@ -1,22 +1,31 @@
-# DuaVakti 1.4.2
+# DuaVakti 1.5.0 — Sürüm Notları
 
-## Ana düzeltme
+## 1. Ezan vakti uyarıları
 
-Kur'an sure detayına girince görülen bölüm hatası için ses motoru değiştirildi.
+- `expo-notifications` eklendi.
+- Android için `prayer-times` bildirim kanalı oluşturulur.
+- İlk kullanımda bildirim izni istenir.
+- Mevcut konum/şehir ayarına göre önümüzdeki 7 günün namaz vakitleri tek seferlik yerel bildirimler olarak planlanır.
+- Uygulama yeniden açıldığında veya konum/vakit kaynağı değiştiğinde eski DuaVakti ezan planları temizlenip yeniden oluşturulur.
+- Gelecek günlerden biri geçici olarak alınamazsa diğer günlerin planı yine oluşturulur.
+- Ayarlar ekranına "Ezan vakti uyarıları" anahtarı eklendi. Kapatıldığında yalnız DuaVakti'nin ezan bildirimleri iptal edilir.
 
-1.3.0 ile eklenen `AudioPlaylist` tabanlı yapı tamamen kaldırıldı. 1.2.0'da çalışan tek `AudioPlayer` yapısına dönüldü ve otomatik sonraki ayete geçiş bu oyuncu üzerinde yeniden kuruldu.
+## 2. Kur’an → Dualar geçiş kararlılığı
 
-- Sure listesi ve sure detay ekranı ses motorundan bağımsız açılır.
-- Bir ayetten dinleme başlatınca sonraki ayetlere otomatik devam eder.
-- `Tümünü dinle` sureyi ilk ayetten son ayete kadar sırayla oynatır.
-- Duraklat/devam et korunur.
-- Ayet bittiğinde yalnız bir kez sonraki ayete geçmek için bitiş kenarı korunur; aynı bitiş olayı birden fazla ayeti atlayamaz.
-- Sekme hata sınırı teknik hata metnini boş bırakmayacak şekilde güçlendirildi.
+- `useAudioPlayer` zaten bileşen yaşam döngüsünde otomatik serbest bırakıldığı için unmount sırasında yapılan elle `player.pause()` kaldırıldı.
+- Ses modu kurulumu hata verse bile ekran geçişini düşürmemesi için güvenli hale getirildi.
+- Kur’an ekranı kapandıktan sonra tamamlanan sure listesi/sure detay isteklerinin state güncellemesi yapması engellendi.
+- Otomatik ayet okuma davranışı korunmuştur.
 
-## Korunan özellikler
+## 3. Widgetlar saatlik değişiyor
 
-- Canlı kıble pusulası
-- Küçük/orta/büyük namaz widgetları
-- Günün duası widgetı
-- Türkçe sure isimleri ve Diyanet meali
-- Dua listesi ve dua detayları
+- Dua seçimi `DAY_OF_YEAR + HOUR_OF_DAY` tabanlı saatlik dilime taşındı.
+- Dört widgetın `updatePeriodMillis` değeri `3600000` (1 saat) oldu.
+- Küçük/orta/büyük widgetlarda başlık "SAATİN DUASI" olarak güncellendi.
+- Saat değişince aynı gün içinde farklı dua gösterilir.
+
+## Sürüm
+
+- Uygulama: `1.5.0`
+- Android `versionCode`: `12`
+- Expo SDK: `57`

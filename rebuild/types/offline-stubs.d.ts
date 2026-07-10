@@ -67,3 +67,15 @@ declare module 'expo-audio' {
   export function useAudioPlayerStatus(player: any): any;
   export function setAudioModeAsync(mode: any): Promise<void>;
 }
+
+declare module 'expo-notifications' {
+  export const AndroidImportance: { HIGH: any };
+  export const SchedulableTriggerInputTypes: { DATE: any };
+  export function setNotificationHandler(handler: any): void;
+  export function setNotificationChannelAsync(id: string, channel: any): Promise<any>;
+  export function getPermissionsAsync(): Promise<{ status: string }>;
+  export function requestPermissionsAsync(): Promise<{ status: string }>;
+  export function getAllScheduledNotificationsAsync(): Promise<any[]>;
+  export function cancelScheduledNotificationAsync(id: string): Promise<void>;
+  export function scheduleNotificationAsync(request: any): Promise<string>;
+}

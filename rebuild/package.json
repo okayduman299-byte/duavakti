@@ -1,6 +1,6 @@
 {
   "name": "duavakti-rebuild",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "private": true,
   "main": "index.ts",
   "scripts": {
@@ -21,11 +21,12 @@
     "@react-native-async-storage/async-storage": "2.2.0",
     "babel-preset-expo": "^57.0.2",
     "expo": "~57.0.0",
+    "expo-asset": "~57.0.3",
     "expo-audio": "~57.0.0",
     "expo-location": "~57.0.2",
+    "expo-notifications": "~57.0.3",
     "react": "19.2.3",
-    "react-native": "0.86.0",
-    "expo-asset": "~57.0.3"
+    "react-native": "0.86.0"
   },
   "devDependencies": {
     "@types/react": "^19.2.0",

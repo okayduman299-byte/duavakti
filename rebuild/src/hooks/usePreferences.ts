@@ -9,6 +9,7 @@ const defaults: AppPreferences = {
   city: 'Muradiye',
   country: 'Turkey',
   useGps: false,
+  prayerNotifications: true,
 };
 
 export function usePreferences() {

@@ -5,5 +5,5 @@
   android:minHeight="140dp"
   android:previewLayout="@layout/duavakti_widget_small"
   android:resizeMode="none"
-  android:updatePeriodMillis="1800000"
+  android:updatePeriodMillis="3600000"
   android:widgetCategory="home_screen" />

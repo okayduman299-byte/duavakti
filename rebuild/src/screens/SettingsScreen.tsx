@@ -51,11 +51,16 @@ export function SettingsScreen({
           <View style={styles.settingText}><Text style={styles.cardTitle}>GPS konumu</Text><Text style={styles.help}>Şehir yerine son alınan cihaz konumunu namaz vakitleri için kullanır.</Text></View>
           <Switch value={preferences.useGps} onValueChange={(value) => updatePreferences({ useGps: value })} trackColor={{ true: colors.accentSoft }} thumbColor={colors.text} />
         </View>
+        <View style={styles.divider} />
+        <View style={styles.settingRow}>
+          <View style={styles.settingText}><Text style={styles.cardTitle}>Ezan vakti uyarıları</Text><Text style={styles.help}>Namaz vakti girdiğinde bildirim gösterir. İlk kullanımda bildirim izni istenir ve önümüzdeki 7 gün planlanır.</Text></View>
+          <Switch value={preferences.prayerNotifications} onValueChange={(value) => updatePreferences({ prayerNotifications: value })} trackColor={{ true: colors.accentSoft }} thumbColor={colors.text} />
+        </View>
       </View>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Uygulama hakkında</Text>
-        <Text style={styles.help}>DuaVakti 1.4.0 · Dualar ekranı, birleşik dua widgetları ve canlı kıble pusulası.</Text>
+        <Text style={styles.help}>DuaVakti 1.5.0 · Ezan vakti uyarıları, saatlik dua widgetları ve kararlı Kur’an geçişi.</Text>
         <Text style={styles.help}>Kıble pusulası cihazın pusula yönünü canlı takip eder. Namaz vakitleri ve Kur’an verileri ağ hatalarında önbellekten çalışabilir.</Text>
       </View>
       <View style={{ height: 120 }} />

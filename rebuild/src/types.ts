@@ -63,6 +63,7 @@ export interface AppPreferences {
   city: string;
   country: string;
   useGps: boolean;
+  prayerNotifications: boolean;
 }
 
 export interface DailyCard {

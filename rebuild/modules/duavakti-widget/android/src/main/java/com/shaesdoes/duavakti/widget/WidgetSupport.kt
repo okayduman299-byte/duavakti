@@ -21,7 +21,7 @@ internal data class WidgetData(
   val remaining: String,
   val targetEpoch: Long,
   val prayers: List<Pair<String, String>>,
-  val dailyDua: WidgetDua,
+  val hourlyDua: WidgetDua,
 )
 
 private val fallbackDua = WidgetDua(
@@ -39,12 +39,13 @@ private fun formatRemaining(targetEpoch: Long, fallback: String): String {
   return String.format("%02d:%02d:%02d", hours, minutes, remainingSeconds)
 }
 
-private fun readDailyDua(raw: String): WidgetDua {
+private fun readHourlyDua(raw: String): WidgetDua {
   return try {
     val array = JSONArray(raw)
     if (array.length() == 0) return fallbackDua
-    val day = Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
-    val item = array.optJSONObject(((day - 1) % array.length())) ?: return fallbackDua
+    val calendar = Calendar.getInstance()
+    val hourlySlot = calendar.get(Calendar.DAY_OF_YEAR) * 24 + calendar.get(Calendar.HOUR_OF_DAY)
+    val item = array.optJSONObject(hourlySlot % array.length()) ?: return fallbackDua
     WidgetDua(
       title = item.optString("title", fallbackDua.title),
       meaning = item.optString("meaning", fallbackDua.meaning),
@@ -78,7 +79,7 @@ internal fun readWidgetData(context: Context): WidgetData {
     remaining = formatRemaining(targetEpoch, fallbackRemaining),
     targetEpoch = targetEpoch,
     prayers = rows,
-    dailyDua = readDailyDua(rawDuas),
+    hourlyDua = readHourlyDua(rawDuas),
   )
 }
 

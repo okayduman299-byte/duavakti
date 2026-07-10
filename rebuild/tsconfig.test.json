@@ -15,6 +15,7 @@
     "src/lib/time.ts",
     "src/lib/dua.ts",
     "src/lib/qibla.ts",
+    "src/lib/notificationPlan.ts",
     "src/data/surahNames.ts",
     "src/types.ts",
     "tests/**/*.ts",

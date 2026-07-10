@@ -13,8 +13,8 @@ class DuaVaktiMediumWidget : AppWidgetProvider() {
         setTextViewText(R.id.next_time, data.nextTime)
         setTextViewText(R.id.remaining, data.remaining)
         setTextViewText(R.id.location, data.location)
-        setTextViewText(R.id.dua_title, "GÜNÜN DUASI · ${data.dailyDua.title}")
-        setTextViewText(R.id.dua_meaning, data.dailyDua.meaning)
+        setTextViewText(R.id.dua_title, "SAATİN DUASI · ${data.hourlyDua.title}")
+        setTextViewText(R.id.dua_meaning, data.hourlyDua.meaning)
       }
     }
   }

@@ -1,14 +1,16 @@
-# DuaVakti 1.4.0
+# DuaVakti 1.5.0
 
 DuaVakti; namaz vakitleri, Kur’an, dualar, Android ana ekran widgetları ve canlı kıble pusulası içeren Expo/React Native uygulamasıdır.
 
 ## Bu sürümde
 
-- Dualar ekranı ilk açılış kararlılığı için yeniden yazıldı.
-- Küçük, orta ve büyük widgetların tamamına günün duası eklendi.
-- Ayrı günün duası widgetı korundu.
-- Kıble ekranı telefonla birlikte dönen canlı pusulaya dönüştürüldü.
-- Kur’an kesintisiz sure oynatma sistemi korunmuştur.
+- Namaz vakitleri için yerel bildirim uyarıları eklendi.
+- Bildirim izni alındıktan sonra önümüzdeki 7 günün vakitleri planlanır.
+- Ayarlar ekranına "Ezan vakti uyarıları" anahtarı eklendi.
+- Kur’an ekranından Dualar sekmesine ilk geçişte oluşan ses oynatıcı kapanış yarışı giderildi.
+- Kur’an ekranı kapandıktan sonra geç gelen ağ/önbellek sonuçlarının state güncellemesi engellendi.
+- Widget dua içeriği günlük yerine saatlik değişir.
+- Dört widgetın periyodik güncelleme aralığı 1 saat olarak ayarlandı.
 
 ## EAS Build
 
@@ -23,4 +25,4 @@ Expo projesinin GitHub Base directory ayarı `/rebuild` olmalıdır.
 
 ## Doğrulama
 
-Ayrıntılar için `TEST-RESULTS.md` ve `VERIFICATION-LOG.txt` dosyalarına bakın.
+Ayrıntılar için `TEST-RESULTS.md`, `RELEASE-NOTES.md` ve `VERIFICATION-LOG.txt` dosyalarına bakın.

@@ -12,7 +12,7 @@ class DuaVaktiSmallWidget : AppWidgetProvider() {
         setTextViewText(R.id.next_prayer, data.nextPrayer)
         setTextViewText(R.id.next_time, data.nextTime)
         setTextViewText(R.id.location, data.location)
-        setTextViewText(R.id.dua_title, "DUA · ${data.dailyDua.title}")
+        setTextViewText(R.id.dua_title, "SAATİN DUASI · ${data.hourlyDua.title}")
       }
     }
   }

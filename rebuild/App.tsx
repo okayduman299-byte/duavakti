@@ -14,6 +14,7 @@ import { colors } from './src/theme';
 import { prayerRows } from './src/lib/prayer';
 import { DUAS } from './src/data/duas';
 import { updateNativeWidgets } from './src/native/widget';
+import { syncPrayerNotifications } from './src/lib/notificationService';
 import type { TabKey } from './src/types';
 
 export default function App() {
@@ -33,6 +34,39 @@ export default function App() {
       duas: DUAS.map(({ title, meaning, source }) => ({ title, meaning, source })),
     });
   }, [prayer.data, prayer.next?.key, prayer.next?.target.getTime()]);
+
+  useEffect(() => {
+    if (!ready) return;
+    if (!preferences.prayerNotifications) {
+      void syncPrayerNotifications({
+        enabled: false,
+        location: prayer.activeLocation,
+        todayData: prayer.data,
+      }).catch(() => undefined);
+      return;
+    }
+    if (!prayer.data) return;
+
+    const timer = setTimeout(() => {
+      void syncPrayerNotifications({
+        enabled: true,
+        location: prayer.activeLocation,
+        todayData: prayer.data,
+      }).catch(() => undefined);
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [
+    ready,
+    preferences.prayerNotifications,
+    prayer.data?.dateKey,
+    prayer.data?.locationKey,
+    prayer.activeLocation.mode,
+    prayer.activeLocation.city,
+    prayer.activeLocation.country,
+    prayer.activeLocation.latitude,
+    prayer.activeLocation.longitude,
+  ]);
 
   const screen = (() => {
     switch (tab) {
@@ -68,8 +102,8 @@ export default function App() {
 
   return (
     <View style={styles.root}>
-        <StatusBar barStyle="light-content" backgroundColor={colors.background} />
-        <View style={styles.safeTop} />
+      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+      <View style={styles.safeTop} />
       <View style={styles.screen}>
         {ready ? <ErrorBoundary key={tab} resetKey={tab}>{screen}</ErrorBoundary> : <LoadingState label="DuaVakti hazırlanıyor…" />}
       </View>
