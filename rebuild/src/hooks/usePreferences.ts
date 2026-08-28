@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { AppPreferences } from '../types';
 import { readJson, writeJson } from '../lib/storage';
 
@@ -23,13 +23,13 @@ export function usePreferences() {
     });
   }, []);
 
-  const update = (patch: Partial<AppPreferences>) => {
+  const update = useCallback((patch: Partial<AppPreferences>) => {
     setPreferences((current) => {
       const next = { ...current, ...patch };
       void writeJson(KEY, next);
       return next;
     });
-  };
+  }, []);
 
   return { preferences, update, ready };
 }
