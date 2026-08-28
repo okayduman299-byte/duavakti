@@ -16,7 +16,7 @@
     ],
     "android": {
       "package": "com.shaesdoes.duavakti",
-      "versionCode": 13,
+      "versionCode": 14,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#080A0D"
