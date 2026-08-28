@@ -27,15 +27,9 @@ jobs:
           cache: npm
           cache-dependency-path: rebuild/package-lock.json
 
-      - name: Setup Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
       - name: Install dependencies
         working-directory: rebuild
-        run: npm ci
+        run: npm install
 
       - name: Typecheck
         working-directory: rebuild
@@ -52,7 +46,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: DuaVakti-1.6.0-APK
+          name: DuaVakti-1.7.0-APK
           path: rebuild/android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 14
