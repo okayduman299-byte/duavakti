@@ -1,4 +1,4 @@
-export type TabKey = 'home' | 'quran' | 'duas' | 'widget' | 'settings';
+export type TabKey = 'home' | 'quran' | 'duas' | 'tesbih' | 'widget' | 'settings';
 
 export type PrayerKey = 'Fajr' | 'Dhuhr' | 'Asr' | 'Maghrib' | 'Isha';
 
