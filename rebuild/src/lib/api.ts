@@ -1,4 +1,6 @@
 const DEFAULT_TIMEOUT_MS = 15_000;
+const MAX_RETRIES = 3;
+const RETRY_DELAYS_MS = [1000, 2000, 4000];
 
 export class ApiError extends Error {
   constructor(message: string, readonly status?: number) {
@@ -7,7 +9,21 @@ export class ApiError extends Error {
   }
 }
 
-export async function fetchJson(url: string, timeoutMs = DEFAULT_TIMEOUT_MS): Promise<unknown> {
+function isRetryable(error: unknown): boolean {
+  return error instanceof ApiError && (
+    error.status === 408 ||
+    error.status === 425 ||
+    error.status === 429 ||
+    (typeof error.status === 'number' && error.status >= 500) ||
+    error.status == null
+  );
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function requestJson(url: string, timeoutMs: number): Promise<unknown> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -16,6 +32,7 @@ export async function fetchJson(url: string, timeoutMs = DEFAULT_TIMEOUT_MS): Pr
       signal: controller.signal,
       headers: {
         Accept: 'application/json',
+        'Cache-Control': 'no-cache',
       },
     });
 
@@ -33,4 +50,20 @@ export async function fetchJson(url: string, timeoutMs = DEFAULT_TIMEOUT_MS): Pr
   } finally {
     clearTimeout(timer);
   }
+}
+
+export async function fetchJson(url: string, timeoutMs = DEFAULT_TIMEOUT_MS): Promise<unknown> {
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
+    try {
+      return await requestJson(url, timeoutMs);
+    } catch (error) {
+      lastError = error;
+      if (attempt >= MAX_RETRIES || !isRetryable(error)) break;
+      await sleep(RETRY_DELAYS_MS[attempt] ?? 4000);
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new ApiError('Vakit servisine ulaşılamadı.');
 }
