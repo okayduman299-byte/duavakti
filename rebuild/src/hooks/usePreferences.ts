@@ -8,7 +8,7 @@ const defaults: AppPreferences = {
   quranFontScale: 1,
   city: 'Muradiye',
   country: 'Turkey',
-  useGps: false,
+  useGps: true,
   prayerNotifications: true,
 };
 
