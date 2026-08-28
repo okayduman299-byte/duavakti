@@ -48,23 +48,20 @@ export function usePrayerData(preferences: AppPreferences, onGpsEnabled: (enable
       }
 
       const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      const next: PrayerLocation = {
+      setGpsLocation({
         mode: 'gps',
         label: 'Konumum',
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
-      };
-
-      setGpsLocation(next);
+      });
       onGpsEnabled(true);
-      await refresh(next);
       return true;
     } catch {
       setError('Konum alınamadı. Şehir ayarıyla devam ediliyor.');
       onGpsEnabled(false);
       return false;
     }
-  }, [onGpsEnabled, refresh]);
+  }, [onGpsEnabled]);
 
   // GPS is automatic: ask for permission and get the device location on startup.
   useEffect(() => {
@@ -73,7 +70,7 @@ export function usePrayerData(preferences: AppPreferences, onGpsEnabled: (enable
   }, [preferences.useGps, useCurrentLocation]);
 
   // Re-check the location whenever the app comes back to the foreground.
-  // This means moving to another city does not require pressing the location button.
+  // Moving to another city therefore updates prayer times without pressing a button.
   useEffect(() => {
     if (!preferences.useGps) return;
 
@@ -84,8 +81,8 @@ export function usePrayerData(preferences: AppPreferences, onGpsEnabled: (enable
     return () => subscription.remove();
   }, [preferences.useGps, useCurrentLocation]);
 
-  // While the app is open, track meaningful movement and refresh only after the
-  // device has moved a few kilometres, avoiding excessive API requests.
+  // While the app is open, track meaningful movement and refresh after a few
+  // kilometres so a long trip can update automatically without excessive API calls.
   useEffect(() => {
     if (!preferences.useGps) return;
 
