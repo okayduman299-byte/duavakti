@@ -12,10 +12,6 @@ import { TesbihScreen } from './src/screens/TesbihScreen';
 import { WidgetScreen } from './src/screens/WidgetScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { colors } from './src/theme';
-import { prayerRows } from './src/lib/prayer';
-import { DUAS } from './src/data/duas';
-import { updateNativeWidgets } from './src/native/widget';
-import { syncPrayerNotifications } from './src/lib/notificationService';
 import type { TabKey } from './src/types';
 
 export default function App() {
@@ -24,18 +20,10 @@ export default function App() {
   const handleGpsEnabled = useCallback((enabled: boolean) => { update({ useGps: enabled }); }, [update]);
   const prayer = usePrayerData(preferences, handleGpsEnabled);
 
-  useEffect(() => {
-    if (!prayer.data || !prayer.next) return;
-    void updateNativeWidgets({ location: prayer.data.locationLabel, nextPrayer: prayer.next.label, nextTime: prayer.next.time, remaining: prayer.countdown, targetEpoch: prayer.next.target.getTime(), prayers: prayerRows(prayer.data.timings).map((row) => ({ label: row.label, time: row.time })), duas: DUAS.map(({ title, meaning, source }) => ({ title, meaning, source })) });
-  }, [prayer.data, prayer.next?.key, prayer.next?.target.getTime()]);
-
-  useEffect(() => {
-    if (!ready) return;
-    if (!preferences.prayerNotifications) { void syncPrayerNotifications({ enabled: false, location: prayer.activeLocation, todayData: prayer.data }).catch(() => undefined); return; }
-    if (!prayer.data) return;
-    const timer = setTimeout(() => { void syncPrayerNotifications({ enabled: true, location: prayer.activeLocation, todayData: prayer.data }).catch(() => undefined); }, 800);
-    return () => clearTimeout(timer);
-  }, [ready, preferences.prayerNotifications, prayer.data?.dateKey, prayer.data?.locationKey, prayer.activeLocation.mode, prayer.activeLocation.city, prayer.activeLocation.country, prayer.activeLocation.latitude, prayer.activeLocation.longitude]);
+  // Native widget and notification synchronization are intentionally disabled
+  // during startup. They will be re-enabled after the Android release is proven
+  // stable. A native crash here must never take down the main application.
+  useEffect(() => undefined, []);
 
   const screen = (() => {
     switch (tab) {
