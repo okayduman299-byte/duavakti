@@ -60,7 +60,9 @@ export function usePrayerData(preferences: AppPreferences, onGpsEnabled: (enable
       }
 
       const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      const next: PrayerLocation = { mode: 'gps', label: 'Konumum', latitude: position.coords.latitude, longitude: position.coords.longitude };
+      const latitude = position.coords.latitude;
+      const longitude = position.coords.longitude;
+      const next: PrayerLocation = { mode: 'gps', label: 'Konumum', latitude, longitude };
       setGpsLocation(next);
       onGpsEnabled(true);
 
@@ -117,9 +119,11 @@ export function usePrayerData(preferences: AppPreferences, onGpsEnabled: (enable
       watcher = await Location.watchPositionAsync(
         { accuracy: Location.Accuracy.Balanced, distanceInterval: 3000, timeInterval: 5 * 60 * 1000 },
         (position) => {
-          const next: PrayerLocation = { mode: 'gps', label: 'Konumum', latitude: position.coords.latitude, longitude: position.coords.longitude };
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+          const next: PrayerLocation = { mode: 'gps', label: 'Konumum', latitude, longitude };
           const previous = lastLoadedLocation.current;
-          const movedEnough = !previous || previous.mode !== 'gps' || previous.latitude == null || previous.longitude == null || Math.abs(previous.latitude - next.latitude) > 0.03 || Math.abs(previous.longitude - next.longitude) > 0.03;
+          const movedEnough = !previous || previous.mode !== 'gps' || previous.latitude == null || previous.longitude == null || Math.abs(previous.latitude - latitude) > 0.03 || Math.abs(previous.longitude - longitude) > 0.03;
           setGpsLocation(next); if (movedEnough) void refresh(next);
         },
       );
