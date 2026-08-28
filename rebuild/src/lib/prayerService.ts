@@ -1,10 +1,11 @@
 import type { PrayerApiResult, PrayerLocation } from '../types';
-import { fetchJson } from './api';
+import { ApiError, fetchJson } from './api';
 import { normalizePrayerTimes } from './prayer';
 import { readJson, writeJson } from './storage';
 import { toApiDate, toDateKey } from './time';
 
 const CACHE_PREFIX = 'duavakti:prayer:';
+const LAST_SUCCESS_PREFIX = 'duavakti:last-prayer-success:';
 
 function locationKey(location: PrayerLocation): string {
   if (location.mode === 'gps' && location.latitude != null && location.longitude != null) {
@@ -27,13 +28,14 @@ export async function loadPrayerTimes(date: Date, location: PrayerLocation): Pro
   const dateKey = toDateKey(date);
   const locKey = locationKey(location);
   const cacheKey = `${CACHE_PREFIX}${dateKey}:${locKey}`;
+  const lastSuccessKey = `${LAST_SUCCESS_PREFIX}${locKey}`;
 
   try {
     const payload = await fetchJson(buildUrl(date, location));
     const data = (payload as any)?.data;
     const timings = normalizePrayerTimes(data?.timings ?? {});
     if (Object.values(timings).some((value) => value === '--:--')) {
-      throw new Error('Eksik vakit verisi');
+      throw new ApiError('Eksik vakit verisi.');
     }
     const result: PrayerApiResult = {
       dateKey,
@@ -44,10 +46,17 @@ export async function loadPrayerTimes(date: Date, location: PrayerLocation): Pro
       source: 'network',
     };
     await writeJson(cacheKey, result);
+    await writeJson(lastSuccessKey, result);
     return result;
   } catch (error) {
-    const cached = await readJson<PrayerApiResult>(cacheKey);
-    if (cached) return { ...cached, source: 'cache' };
+    const cachedToday = await readJson<PrayerApiResult>(cacheKey);
+    if (cachedToday) return { ...cachedToday, source: 'cache' };
+
+    const lastSuccess = await readJson<PrayerApiResult>(lastSuccessKey);
+    if (lastSuccess) {
+      return { ...lastSuccess, dateKey, source: 'cache' };
+    }
+
     throw error;
   }
 }
