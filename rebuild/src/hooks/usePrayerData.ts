@@ -1,4 +1,4 @@
-import { AppState } from 'react-native';
+import { Alert, AppState, Linking } from 'react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as Location from 'expo-location';
 import type { AppPreferences, PrayerApiResult, PrayerLocation } from '../types';
@@ -9,6 +9,17 @@ import { readJson } from '../lib/storage';
 import { startAutomaticLocationTracking } from '../native/locationTask';
 
 const LAST_LOCATION_KEY = 'duavakti:last-background-location:v1';
+
+function showBackgroundLocationWarning() {
+  Alert.alert(
+    'Arka plan konum izni gerekli',
+    'DuaVakti, bulunduğun şehir değiştiğinde namaz vakitlerini otomatik güncelleyebilmek için konumuna arka planda erişebilmelidir. Lütfen konum iznini "Her zaman izin ver" olarak ayarla.',
+    [
+      { text: 'Daha sonra', style: 'cancel' },
+      { text: 'Ayarlara git', onPress: () => void Linking.openSettings() },
+    ],
+  );
+}
 
 export function usePrayerData(preferences: AppPreferences, onGpsEnabled: (enabled: boolean) => void) {
   const [data, setData] = useState<PrayerApiResult | null>(null);
@@ -37,19 +48,41 @@ export function usePrayerData(preferences: AppPreferences, onGpsEnabled: (enable
 
   const useCurrentLocation = useCallback(async () => {
     try {
-      const permission = await Location.requestForegroundPermissionsAsync();
-      if (permission.status !== 'granted') {
-        setError('Konum izni verilmedi. Şehir ayarıyla devam ediliyor.'); onGpsEnabled(false); return false;
+      const foreground = await Location.getForegroundPermissionsAsync();
+      const foregroundPermission = foreground.status === 'granted'
+        ? foreground
+        : await Location.requestForegroundPermissionsAsync();
+
+      if (foregroundPermission.status !== 'granted') {
+        setError('Konum izni verilmedi. Şehir ayarıyla devam ediliyor.');
+        onGpsEnabled(false);
+        return false;
       }
+
       const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
       const next: PrayerLocation = { mode: 'gps', label: 'Konumum', latitude: position.coords.latitude, longitude: position.coords.longitude };
-      setGpsLocation(next); onGpsEnabled(true);
+      setGpsLocation(next);
+      onGpsEnabled(true);
 
-      const background = await Location.requestBackgroundPermissionsAsync();
-      if (background.status === 'granted') await startAutomaticLocationTracking();
+      const background = await Location.getBackgroundPermissionsAsync();
+      const backgroundPermission = background.status === 'granted'
+        ? background
+        : await Location.requestBackgroundPermissionsAsync();
+
+      if (backgroundPermission.status !== 'granted') {
+        showBackgroundLocationWarning();
+        return true;
+      }
+
+      const trackingStarted = await startAutomaticLocationTracking();
+      if (!trackingStarted) {
+        showBackgroundLocationWarning();
+      }
       return true;
     } catch {
-      setError('Konum alınamadı. Şehir ayarıyla devam ediliyor.'); onGpsEnabled(false); return false;
+      setError('Konum alınamadı. Şehir ayarıyla devam ediliyor.');
+      onGpsEnabled(false);
+      return false;
     }
   }, [onGpsEnabled]);
 
