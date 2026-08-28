@@ -60,7 +60,7 @@ export function SettingsScreen({
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Uygulama hakkında</Text>
-        <Text style={styles.help}>DuaVakti 1.5.0 · Ezan vakti uyarıları, saatlik dua widgetları ve kararlı Kur’an geçişi.</Text>
+        <Text style={styles.help}>DuaVakti 1.6.0 · Ezan vakti uyarıları, saatlik dua widgetları, Kur’an ve yeni tesbih sayacı.</Text>
         <Text style={styles.help}>Kıble pusulası cihazın pusula yönünü canlı takip eder. Namaz vakitleri ve Kur’an verileri ağ hatalarında önbellekten çalışabilir.</Text>
       </View>
       <View style={{ height: 120 }} />
