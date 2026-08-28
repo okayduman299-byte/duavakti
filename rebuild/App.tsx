@@ -8,6 +8,7 @@ import { usePrayerData } from './src/hooks/usePrayerData';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { QuranScreen } from './src/screens/QuranScreen';
 import { DuasScreen } from './src/screens/DuasScreen';
+import { TesbihScreen } from './src/screens/TesbihScreen';
 import { WidgetScreen } from './src/screens/WidgetScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { colors } from './src/theme';
@@ -74,6 +75,8 @@ export default function App() {
         return <QuranScreen preferences={preferences} updatePreferences={update} />;
       case 'duas':
         return <DuasScreen />;
+      case 'tesbih':
+        return <TesbihScreen />;
       case 'widget':
         return <WidgetScreen data={prayer.data} next={prayer.next} countdown={prayer.countdown} />;
       case 'settings':
