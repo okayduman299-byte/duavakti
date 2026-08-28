@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Platform, StatusBar, StyleSheet, View } from 'react-native';
 import { BottomNav } from './src/components/BottomNav';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
@@ -22,7 +22,10 @@ import type { TabKey } from './src/types';
 export default function App() {
   const [tab, setTab] = useState<TabKey>('home');
   const { preferences, update, ready } = usePreferences();
-  const prayer = usePrayerData(preferences, (enabled) => update({ useGps: enabled }));
+  const handleGpsEnabled = useCallback((enabled: boolean) => {
+    update({ useGps: enabled });
+  }, [update]);
+  const prayer = usePrayerData(preferences, handleGpsEnabled);
 
   useEffect(() => {
     if (!prayer.data || !prayer.next) return;
