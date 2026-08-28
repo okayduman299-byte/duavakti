@@ -3,14 +3,14 @@
     "name": "DuaVakti",
     "slug": "duavakti",
     "owner": "okayduman299",
-    "version": "1.7.1",
+    "version": "1.7.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": { "image": "./assets/splash.png", "resizeMode": "contain", "backgroundColor": "#080A0D" },
     "assetBundlePatterns": ["**/*"],
     "android": {
       "package": "com.shaesdoes.duavakti",
-      "versionCode": 16,
+      "versionCode": 17,
       "adaptiveIcon": { "foregroundImage": "./assets/adaptive-icon.png", "backgroundColor": "#080A0D" },
       "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION", "ACCESS_BACKGROUND_LOCATION", "POST_NOTIFICATIONS"]
     },
