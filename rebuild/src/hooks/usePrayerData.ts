@@ -5,6 +5,10 @@ import type { AppPreferences, PrayerApiResult, PrayerLocation } from '../types';
 import { loadPrayerTimes } from '../lib/prayerService';
 import { getNextPrayer } from '../lib/prayer';
 import { formatCountdown } from '../lib/time';
+import { readJson } from '../lib/storage';
+import { BACKGROUND_LOCATION_TASK, startAutomaticLocationTracking } from '../native/locationTask';
+
+const LAST_LOCATION_KEY = 'duavakti:last-background-location:v1';
 
 export function usePrayerData(preferences: AppPreferences, onGpsEnabled: (enabled: boolean) => void) {
   const [data, setData] = useState<PrayerApiResult | null>(null);
@@ -48,13 +52,21 @@ export function usePrayerData(preferences: AppPreferences, onGpsEnabled: (enable
       }
 
       const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      setGpsLocation({
+      const next: PrayerLocation = {
         mode: 'gps',
         label: 'Konumum',
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
-      });
+      };
+      setGpsLocation(next);
       onGpsEnabled(true);
+
+      // Ask once for background permission so the app can follow city-to-city
+      // travel even when it is minimized or the screen is locked.
+      const background = await Location.requestBackgroundPermissionsAsync();
+      if (background.status === 'granted') {
+        await startAutomaticLocationTracking();
+      }
       return true;
     } catch {
       setError('Konum alınamadı. Şehir ayarıyla devam ediliyor.');
@@ -63,36 +75,38 @@ export function usePrayerData(preferences: AppPreferences, onGpsEnabled: (enable
     }
   }, [onGpsEnabled]);
 
-  // GPS is automatic: ask for permission and get the device location on startup.
   useEffect(() => {
     if (!preferences.useGps) return;
     void useCurrentLocation();
   }, [preferences.useGps, useCurrentLocation]);
 
-  // Re-check the location whenever the app comes back to the foreground.
-  // Moving to another city therefore updates prayer times without pressing a button.
+  // Restore the last location received by the background task immediately.
+  // This avoids waiting for a fresh GPS fix after a long trip.
   useEffect(() => {
     if (!preferences.useGps) return;
+    void readJson<PrayerLocation>(LAST_LOCATION_KEY).then((stored) => {
+      if (!stored || stored.latitude == null || stored.longitude == null) return;
+      setGpsLocation(stored);
+      void refresh(stored);
+    });
+  }, [preferences.useGps, refresh]);
 
+  useEffect(() => {
+    if (!preferences.useGps) return;
     const subscription = AppState.addEventListener('change', (state) => {
       if (state === 'active') void useCurrentLocation();
     });
-
     return () => subscription.remove();
   }, [preferences.useGps, useCurrentLocation]);
 
-  // While the app is open, track meaningful movement and refresh after a few
-  // kilometres so a long trip can update automatically without excessive API calls.
   useEffect(() => {
     if (!preferences.useGps) return;
 
     let watcher: Location.LocationSubscription | null = null;
     let cancelled = false;
-
     const startWatcher = async () => {
       const permission = await Location.getForegroundPermissionsAsync();
       if (permission.status !== 'granted' || cancelled) return;
-
       watcher = await Location.watchPositionAsync(
         {
           accuracy: Location.Accuracy.Balanced,
@@ -101,32 +115,18 @@ export function usePrayerData(preferences: AppPreferences, onGpsEnabled: (enable
         },
         (position) => {
           const next: PrayerLocation = {
-            mode: 'gps',
-            label: 'Konumum',
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
+            mode: 'gps', label: 'Konumum',
+            latitude: position.coords.latitude, longitude: position.coords.longitude,
           };
-
           const previous = lastLoadedLocation.current;
-          const movedEnough =
-            !previous ||
-            previous.mode !== 'gps' ||
-            previous.latitude == null ||
-            previous.longitude == null ||
-            Math.abs(previous.latitude - next.latitude) > 0.03 ||
-            Math.abs(previous.longitude - next.longitude) > 0.03;
-
+          const movedEnough = !previous || previous.mode !== 'gps' || previous.latitude == null || previous.longitude == null || Math.abs(previous.latitude - next.latitude) > 0.03 || Math.abs(previous.longitude - next.longitude) > 0.03;
           setGpsLocation(next);
           if (movedEnough) void refresh(next);
         },
       );
     };
-
     void startWatcher();
-    return () => {
-      cancelled = true;
-      watcher?.remove();
-    };
+    return () => { cancelled = true; watcher?.remove(); };
   }, [preferences.useGps, refresh]);
 
   useEffect(() => {
@@ -135,7 +135,6 @@ export function usePrayerData(preferences: AppPreferences, onGpsEnabled: (enable
   }, []);
 
   useEffect(() => {
-    // Manual city mode remains available when GPS is disabled in Settings.
     if (preferences.useGps && !gpsLocation) return;
     void refresh();
   }, [preferences.useGps, gpsLocation, refresh]);
