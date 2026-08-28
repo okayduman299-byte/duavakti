@@ -7,6 +7,7 @@ const items: Array<{ key: TabKey; label: string; icon: string }> = [
   { key: 'home', label: 'Ana', icon: '⌂' },
   { key: 'quran', label: 'Kur’an', icon: '۞' },
   { key: 'duas', label: 'Dualar', icon: '☾' },
+  { key: 'tesbih', label: 'Tesbih', icon: '●' },
   { key: 'widget', label: 'Widget', icon: '▣' },
   { key: 'settings', label: 'Ayarlar', icon: '⚙' },
 ];
@@ -28,10 +29,10 @@ export function BottomNav({ active, onChange }: { active: TabKey; onChange: (tab
 }
 
 const styles = StyleSheet.create({
-  bar: { flexDirection: 'row', backgroundColor: '#101418', borderWidth: 1, borderColor: colors.border, borderRadius: 34, marginHorizontal: 18, marginBottom: 12, padding: 8, minHeight: 78 },
+  bar: { flexDirection: 'row', backgroundColor: '#101418', borderWidth: 1, borderColor: colors.border, borderRadius: 34, marginHorizontal: 12, marginBottom: 12, padding: 7, minHeight: 78 },
   item: { flex: 1, alignItems: 'center', justifyContent: 'center', borderRadius: radii.lg, gap: 4 },
   selected: { backgroundColor: colors.accentSoft },
-  icon: { color: colors.textMuted, fontSize: 25 },
-  label: { color: colors.textMuted, fontSize: 11, fontWeight: '700' },
+  icon: { color: colors.textMuted, fontSize: 22 },
+  label: { color: colors.textMuted, fontSize: 10, fontWeight: '700' },
   selectedText: { color: colors.text },
 });
