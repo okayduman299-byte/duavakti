@@ -46,11 +46,11 @@ export function usePrayerData(preferences: AppPreferences, onGpsEnabled: (enable
       if (foreground.status !== 'granted') { setError('Konum izni verilmedi. Şehir ayarıyla devam ediliyor.'); onGpsEnabled(false); return false; }
 
       const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      const location: PrayerLocation = { mode: 'gps', label: 'Konumum', latitude: position.coords.latitude, longitude: position.coords.longitude };
+      const latitude = position.coords.latitude;
+      const longitude = position.coords.longitude;
+      const location: PrayerLocation = { mode: 'gps', label: 'Konumum', latitude, longitude };
       setGpsLocation(location); onGpsEnabled(true);
 
-      // Background service is intentionally not started from the UI thread.
-      // This keeps the app stable on Android devices that restrict background location.
       const background = await Location.getBackgroundPermissionsAsync();
       if (background.status !== 'granted' && !warningShown.current) { warningShown.current = true; showBackgroundLocationWarning(); }
       return true;
@@ -81,9 +81,13 @@ export function usePrayerData(preferences: AppPreferences, onGpsEnabled: (enable
         const permission = await Location.getForegroundPermissionsAsync();
         if (permission.status !== 'granted' || cancelled) return;
         watcher = await Location.watchPositionAsync({ accuracy: Location.Accuracy.Balanced, distanceInterval: 3000, timeInterval: 5 * 60 * 1000 }, (position) => {
-          const next: PrayerLocation = { mode: 'gps', label: 'Konumum', latitude: position.coords.latitude, longitude: position.coords.longitude };
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+          const next: PrayerLocation = { mode: 'gps', label: 'Konumum', latitude, longitude };
           const previous = lastLoadedLocation.current;
-          const movedEnough = !previous || previous.mode !== 'gps' || previous.latitude == null || previous.longitude == null || Math.abs(previous.latitude - next.latitude) > 0.03 || Math.abs(previous.longitude - next.longitude) > 0.03;
+          const previousLatitude = previous?.latitude;
+          const previousLongitude = previous?.longitude;
+          const movedEnough = !previous || previous.mode !== 'gps' || previousLatitude == null || previousLongitude == null || Math.abs(previousLatitude - latitude) > 0.03 || Math.abs(previousLongitude - longitude) > 0.03;
           setGpsLocation(next); if (movedEnough) void refresh(next);
         });
       } catch { /* Never let location watcher errors crash the app. */ }
