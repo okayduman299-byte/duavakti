@@ -24,6 +24,7 @@ export function usePrayerData(preferences: AppPreferences, onGpsEnabled: (enable
   const [gpsLocation, setGpsLocation] = useState<PrayerLocation | null>(null);
   const lastLoadedLocation = useRef<PrayerLocation | null>(null);
   const warningShown = useRef(false);
+  const locating = useRef(false);
 
   const cityLocation = useMemo<PrayerLocation>(() => ({ mode: 'city', label: preferences.city || 'Muradiye', city: preferences.city || 'Muradiye', country: preferences.country || 'Turkey' }), [preferences.city, preferences.country]);
   const activeLocation = preferences.useGps && gpsLocation ? gpsLocation : cityLocation;
@@ -33,71 +34,91 @@ export function usePrayerData(preferences: AppPreferences, onGpsEnabled: (enable
     try {
       const location = locationOverride ?? activeLocation;
       const result = await loadPrayerTimes(new Date(), location);
-      setData(result); lastLoadedLocation.current = location;
+      setData(result);
+      lastLoadedLocation.current = location;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Vakitler alınamadı.');
     } finally { setLoading(false); }
   }, [activeLocation]);
 
   const useCurrentLocation = useCallback(async () => {
+    if (locating.current) return false;
+    locating.current = true;
     try {
       const current = await Location.getForegroundPermissionsAsync();
       const foreground = current.status === 'granted' ? current : await Location.requestForegroundPermissionsAsync();
-      if (foreground.status !== 'granted') { setError('Konum izni verilmedi. Şehir ayarıyla devam ediliyor.'); onGpsEnabled(false); return false; }
+      if (foreground.status !== 'granted') {
+        setError('Konum izni verilmedi. Şehir ayarıyla devam ediliyor.');
+        onGpsEnabled(false);
+        return false;
+      }
 
       const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
       const latitude = position.coords.latitude;
       const longitude = position.coords.longitude;
       const location: PrayerLocation = { mode: 'gps', label: 'Konumum', latitude, longitude };
-      setGpsLocation(location); onGpsEnabled(true);
+      setGpsLocation(location);
+      onGpsEnabled(true);
 
-      const background = await Location.getBackgroundPermissionsAsync();
-      if (background.status !== 'granted' && !warningShown.current) { warningShown.current = true; showBackgroundLocationWarning(); }
+      try {
+        const background = await Location.getBackgroundPermissionsAsync();
+        if (background.status !== 'granted' && !warningShown.current) {
+          warningShown.current = true;
+          showBackgroundLocationWarning();
+        }
+      } catch {
+        // Background permission check must never affect normal app operation.
+      }
       return true;
     } catch {
-      setError('Konum alınamadı. Şehir ayarıyla devam ediliyor.'); onGpsEnabled(false); return false;
+      setError('Konum alınamadı. Şehir ayarıyla devam ediliyor.');
+      onGpsEnabled(false);
+      return false;
+    } finally {
+      locating.current = false;
     }
   }, [onGpsEnabled]);
 
-  useEffect(() => { if (preferences.useGps) { warningShown.current = false; void useCurrentLocation(); } }, [preferences.useGps, useCurrentLocation]);
-
   useEffect(() => {
     if (!preferences.useGps) return;
-    void readJson<PrayerLocation>(LAST_LOCATION_KEY).then((stored) => { if (stored?.latitude != null && stored?.longitude != null) { setGpsLocation(stored); void refresh(stored); } });
-  }, [preferences.useGps, refresh]);
-
-  useEffect(() => {
-    if (!preferences.useGps) return;
-    const subscription = AppState.addEventListener('change', (state) => { if (state === 'active') void useCurrentLocation(); });
-    return () => subscription.remove();
+    warningShown.current = false;
+    void useCurrentLocation();
   }, [preferences.useGps, useCurrentLocation]);
 
   useEffect(() => {
     if (!preferences.useGps) return;
-    let watcher: Location.LocationSubscription | null = null;
-    let cancelled = false;
-    const startWatcher = async () => {
-      try {
-        const permission = await Location.getForegroundPermissionsAsync();
-        if (permission.status !== 'granted' || cancelled) return;
-        watcher = await Location.watchPositionAsync({ accuracy: Location.Accuracy.Balanced, distanceInterval: 3000, timeInterval: 5 * 60 * 1000 }, (position) => {
-          const latitude = position.coords.latitude;
-          const longitude = position.coords.longitude;
-          const next: PrayerLocation = { mode: 'gps', label: 'Konumum', latitude, longitude };
-          const previous = lastLoadedLocation.current;
-          const previousLatitude = previous?.latitude;
-          const previousLongitude = previous?.longitude;
-          const movedEnough = !previous || previous.mode !== 'gps' || previousLatitude == null || previousLongitude == null || Math.abs(previousLatitude - latitude) > 0.03 || Math.abs(previousLongitude - longitude) > 0.03;
-          setGpsLocation(next); if (movedEnough) void refresh(next);
-        });
-      } catch { /* Never let location watcher errors crash the app. */ }
-    };
-    void startWatcher();
-    return () => { cancelled = true; watcher?.remove(); };
+    void readJson<PrayerLocation>(LAST_LOCATION_KEY).then((stored) => {
+      if (stored?.latitude != null && stored?.longitude != null) {
+        setGpsLocation(stored);
+        void refresh(stored);
+      }
+    });
   }, [preferences.useGps, refresh]);
 
-  useEffect(() => { const timer = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(timer); }, []);
-  useEffect(() => { if (preferences.useGps && !gpsLocation) return; void refresh(); }, [preferences.useGps, gpsLocation, refresh]);
+  // When the app returns to the foreground, re-read GPS so a city change
+  // is picked up without requiring the user to close/reopen the app.
+  useEffect(() => {
+    if (!preferences.useGps) return;
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void useCurrentLocation();
+    });
+    return () => subscription.remove();
+  }, [preferences.useGps, useCurrentLocation]);
+
+  // Do not use watchPositionAsync here. Some Android/Expo combinations can
+  // crash the native process when a location watcher is registered from a
+  // release build. Foreground refresh gives us the same automatic city
+  // update when the app becomes active, without that crash path.
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (preferences.useGps && !gpsLocation) return;
+    void refresh();
+  }, [preferences.useGps, gpsLocation, refresh]);
 
   const next = useMemo(() => data ? getNextPrayer(now, data.timings) : null, [data, now]);
   const countdown = next ? formatCountdown(next.target.getTime() - now.getTime()) : '--:--:--';
