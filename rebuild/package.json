@@ -8,7 +8,7 @@
     "android": "expo run:android",
     "typecheck": "tsc --noEmit",
     "typecheck:offline": "tsc -p tsconfig.offline.json",
-    "test:logic": "tsc -p tsconfig.test.tsconfig.json && node --test .test-build/tests/*.test.js",
+    "test:logic": "tsc -p tsconfig.test.json && node --test .test-build/tests/*.test.js",
     "verify": "node scripts/verify.mjs",
     "test": "npm run test:logic && npm run verify",
     "test:all": "npm run typecheck && npm test",
