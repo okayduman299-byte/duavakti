@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { loadPrayerTimes } from './src/lib/prayerService';
 import { getNextPrayer } from './src/lib/prayer';
 import { formatCountdown } from './src/lib/time';
@@ -13,20 +14,25 @@ const PRAYERS: Array<{ key: PrayerKey; label: string; icon: string }> = [
   { key: 'Isha', label: 'Yatsı', icon: '🌌' },
 ];
 
+const CITIES = ['Muradiye', 'Bursa', 'İstanbul', 'Ankara', 'İzmir', 'Antalya', 'Konya', 'Kocaeli', 'Sakarya', 'Balıkesir'];
+const CITY_KEY = 'duavakti:selected-city:v1';
+
 export default function App() {
+  const [city, setCity] = useState('Muradiye');
   const [data, setData] = useState<PrayerApiResult | null>(null);
   const [now, setNow] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
-  const refresh = async () => {
+  const refresh = async (selectedCity = city) => {
     setLoading(true);
     setError(null);
     try {
       const result = await loadPrayerTimes(new Date(), {
         mode: 'city',
-        label: 'Muradiye',
-        city: 'Muradiye',
+        label: selectedCity,
+        city: selectedCity,
         country: 'Turkey',
       });
       setData(result);
@@ -38,13 +44,31 @@ export default function App() {
   };
 
   useEffect(() => {
-    void refresh();
+    let active = true;
+    void (async () => {
+      const saved = await AsyncStorage.getItem(CITY_KEY);
+      const selected = saved && CITIES.includes(saved) ? saved : 'Muradiye';
+      if (active) {
+        setCity(selected);
+        await refresh(selected);
+      }
+    })();
     const timer = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(timer);
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
   }, []);
 
   const next = useMemo(() => data ? getNextPrayer(now, data.timings) : null, [data, now]);
   const countdown = next ? formatCountdown(next.target.getTime() - now.getTime()) : '--:--:--';
+
+  const selectCity = async (selected: string) => {
+    setCity(selected);
+    await AsyncStorage.setItem(CITY_KEY, selected);
+    setSettingsOpen(false);
+    await refresh(selected);
+  };
 
   return (
     <SafeAreaView style={styles.root}>
@@ -53,9 +77,11 @@ export default function App() {
         <View style={styles.header}>
           <View>
             <Text style={styles.brand}>DuaVakti</Text>
-            <Text style={styles.location}>📍 Muradiye • Türkiye</Text>
+            <Text style={styles.location}>📍 {city} • Türkiye</Text>
           </View>
-          <Text style={styles.moon}>☪</Text>
+          <Pressable onPress={() => setSettingsOpen(true)} style={styles.settingsButton}>
+            <Text style={styles.settingsIcon}>⚙️</Text>
+          </Pressable>
         </View>
 
         <View style={styles.nextCard}>
@@ -89,13 +115,33 @@ export default function App() {
           })}
         </View>
 
-        <Pressable style={styles.refreshButton} onPress={refresh} disabled={loading}>
+        <Pressable style={styles.refreshButton} onPress={() => void refresh()} disabled={loading}>
           <Text style={styles.refreshText}>{loading ? 'Vakitler yükleniyor…' : '↻  Vakitleri Yenile'}</Text>
         </Pressable>
 
         {error && data ? <Text style={styles.smallError}>{error}</Text> : null}
         <Text style={styles.footer}>DuaVakti • Huzurla hatırla, vaktinde kıl.</Text>
       </View>
+
+      <Modal visible={settingsOpen} transparent animationType="slide" onRequestClose={() => setSettingsOpen(false)}>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Ayarlar</Text>
+              <Pressable onPress={() => setSettingsOpen(false)}><Text style={styles.close}>✕</Text></Pressable>
+            </View>
+            <Text style={styles.modalSubtitle}>Şehir seç</Text>
+            <View style={styles.cityGrid}>
+              {CITIES.map((item) => (
+                <Pressable key={item} onPress={() => void selectCity(item)} style={[styles.cityButton, city === item && styles.cityButtonSelected]}>
+                  <Text style={[styles.cityText, city === item && styles.cityTextSelected]}>{item}</Text>
+                </Pressable>
+              ))}
+            </View>
+            <Text style={styles.modalNote}>Seçimin telefonda saklanır ve sonraki açılışta kullanılır.</Text>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -106,7 +152,8 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   brand: { color: '#f5f7f5', fontSize: 31, fontWeight: '800' },
   location: { color: '#9eafa5', fontSize: 14, marginTop: 4 },
-  moon: { color: '#b8ddc6', fontSize: 36 },
+  settingsButton: { width: 46, height: 46, borderRadius: 15, backgroundColor: '#10261b', alignItems: 'center', justifyContent: 'center' },
+  settingsIcon: { fontSize: 22 },
   nextCard: { backgroundColor: '#10261b', borderRadius: 24, padding: 24, alignItems: 'center', minHeight: 190, justifyContent: 'center', borderWidth: 1, borderColor: '#214531' },
   nextLabel: { color: '#8fb59d', fontSize: 12, fontWeight: '800', letterSpacing: 1.5, marginBottom: 7 },
   nextName: { color: '#ffffff', fontSize: 24, fontWeight: '700' },
@@ -125,4 +172,16 @@ const styles = StyleSheet.create({
   refreshText: { color: '#0a1710', fontSize: 16, fontWeight: '800' },
   smallError: { color: '#ffb4a8', textAlign: 'center', marginTop: 8, fontSize: 12 },
   footer: { color: '#617269', textAlign: 'center', marginTop: 'auto', marginBottom: 12, fontSize: 12 },
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-end' },
+  modalCard: { backgroundColor: '#0d1b14', borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 22, paddingBottom: 30, borderWidth: 1, borderColor: '#214531' },
+  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 },
+  modalTitle: { color: '#fff', fontSize: 25, fontWeight: '800' },
+  close: { color: '#9eafa5', fontSize: 22 },
+  modalSubtitle: { color: '#bce2c9', fontSize: 15, fontWeight: '700', marginBottom: 12 },
+  cityGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
+  cityButton: { paddingHorizontal: 15, paddingVertical: 11, borderRadius: 13, backgroundColor: '#14271d', borderWidth: 1, borderColor: '#1f392b' },
+  cityButtonSelected: { backgroundColor: '#a9d5b9', borderColor: '#a9d5b9' },
+  cityText: { color: '#d5e0d9', fontSize: 14, fontWeight: '600' },
+  cityTextSelected: { color: '#0a1710', fontWeight: '800' },
+  modalNote: { color: '#6f8076', fontSize: 12, marginTop: 18, lineHeight: 18 },
 });
