@@ -23,7 +23,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           cache-dependency-path: rebuild/package-lock.json
 
@@ -37,7 +37,7 @@ jobs:
 
       - name: Expo prebuild
         working-directory: rebuild
-        run: npx expo prebuild --platform android --clean --non-interactive
+        run: CI=1 npx expo prebuild --platform android --clean
 
       - name: Build release APK
         working-directory: rebuild/android
@@ -46,7 +46,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: DuaVakti-1.7.0-APK
+          name: DuaVakti-1.7.4-APK
           path: rebuild/android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 14
