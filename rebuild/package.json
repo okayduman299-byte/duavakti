@@ -1,6 +1,6 @@
 {
   "name": "duavakti-rebuild",
-  "version": "1.7.7",
+  "version": "1.8.0",
   "private": true,
   "main": "index.ts",
   "scripts": {
@@ -28,7 +28,8 @@
     "expo-speech": "~57.0.2",
     "expo-task-manager": "~57.0.15",
     "react": "19.2.3",
-    "react-native": "0.86.0"
+    "react-native": "0.86.0",
+    "react-native-android-widget": "^0.21.0"
   },
   "devDependencies": {
     "@types/react": "^19.2.0",
