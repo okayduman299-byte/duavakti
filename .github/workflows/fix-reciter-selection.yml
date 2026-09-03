@@ -1,0 +1,45 @@
+name: Fix Quran reciter selection
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Patch reciter selection
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('rebuild/src/screens/QuranScreenV2.tsx')
+          s = p.read_text()
+          old = "const openSurah = async (summary: SurahSummary, resumeAyah = 0) => {"
+          new = "const openSurah = async (summary: SurahSummary, resumeAyah = 0, audioEdition?: string) => {"
+          if old not in s:
+              raise SystemExit('openSurah signature not found')
+          s = s.replace(old, new, 1)
+          old = "const selectedReciter = (await readJson<string>(RECITER_KEY)) || reciter;"
+          new = "const selectedReciter = audioEdition || (await readJson<string>(RECITER_KEY)) || reciter;"
+          if old not in s:
+              raise SystemExit('selectedReciter line not found')
+          s = s.replace(old, new, 1)
+          old = "if (selected) await openSurah(selected, lastReadAyah);"
+          new = "if (selected) await openSurah(selected, lastReadAyah, item.identifier);"
+          if old not in s:
+              raise SystemExit('chooseReciter call not found')
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+          PY
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add rebuild/src/screens/QuranScreenV2.tsx
+          git diff --cached --quiet && exit 0
+          git commit -m "Fix Quran reciter switching without double tap"
+          git push
