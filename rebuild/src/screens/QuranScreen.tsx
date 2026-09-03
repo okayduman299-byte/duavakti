@@ -264,6 +264,13 @@ export function QuranScreen({
         : (activeAudioIndex ?? 0) > 0 || playerStatus.currentTime > 0
           ? "Devam et"
           : "Tümünü dinle";
+    const currentAudioProgress =
+      playerStatus.duration > 0
+        ? Math.min(1, Math.max(0, playerStatus.currentTime / playerStatus.duration))
+        : 0;
+    const surahProgress = playableAyahs.length
+      ? Math.min(1, Math.max(0, ((activeAudioIndex ?? 0) + currentAudioProgress) / playableAyahs.length))
+      : 0;
 
     return (
       <View style={styles.root}>
@@ -459,6 +466,13 @@ export function QuranScreen({
             }
             ListFooterComponent={<View style={{ height: 120 }} />}
           />
+        ) : null}
+        {content && playableAyahs.length ? (
+          <View pointerEvents="none" style={styles.progressDock}>
+            <View style={styles.progressTrack}>
+              <View style={[styles.progressFill, { width: `${surahProgress * 100}%` }]} />
+            </View>
+          </View>
         ) : null}
       </View>
     );
@@ -660,6 +674,25 @@ const styles = StyleSheet.create({
     letterSpacing: 1.3,
   },
   surahAudioText: { color: colors.textMuted, fontSize: 12, marginTop: 4 },
+  progressDock: {
+    position: "absolute",
+    left: 18,
+    right: 18,
+    bottom: 70,
+    height: 8,
+    justifyContent: "center",
+  },
+  progressTrack: {
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: colors.border,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: colors.accent,
+  },
   wholeAudioButton: {
     minWidth: 112,
     height: 42,
