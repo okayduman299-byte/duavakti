@@ -353,6 +353,40 @@ export function QuranScreen({
           </View>
         ) : null}
 
+        {content && playableAyahs.length ? (
+          <View pointerEvents="none" style={styles.progressDock}>
+            <View style={{ marginBottom: 4, alignItems: "center" }}>
+              <Text style={{ fontSize: 10, fontWeight: "700", color: colors.textMuted }}>
+                {activeAyah ? `Okunan: ${activeAyah}. ayet` : "Ayet takibi hazır"}
+              </Text>
+            </View>
+            <View style={styles.progressTrack}>
+              {playableAyahs.map((ayah, index) => {
+                const isPast = activeAudioIndex !== null && index < activeAudioIndex;
+                const isCurrent = activeAudioIndex === index;
+                const width = `${100 / playableAyahs.length}%`;
+                const fillWidth = isPast
+                  ? "100%"
+                  : isCurrent
+                    ? `${currentAudioProgress * 100}%`
+                    : "0%";
+                return (
+                  <View key={`progress-${ayah.numberInSurah}`} style={{ width, height: 4, paddingRight: index === playableAyahs.length - 1 ? 0 : 1 }}>
+                    <View
+                      style={{
+                        height: 4,
+                        width: fillWidth,
+                        borderRadius: 2,
+                        backgroundColor: colors.accent,
+                      }}
+                    />
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        ) : null}
+
         {audioError ? (
           <View style={styles.audioErrorBox}>
             <Text style={styles.audioErrorText}>Ses özelliği geçici olarak kullanılamıyor. Metin okumaya devam edebilirsin.</Text>
