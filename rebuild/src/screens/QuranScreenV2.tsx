@@ -61,7 +61,8 @@ export function QuranScreenV2({ preferences, updatePreferences }: { preferences:
     const safe = normalizeSurahSummary(summary); if (!safe) return setError('Sure bilgisi geçersiz.');
     stopAudio(); setSelected(safe); setContent(null); setReaderLoading(true); setError(null);
     try {
-      const r = await loadSurah(safe.number, reciter); if (!mounted.current) return;
+      const selectedReciter = (await readJson<string>(RECITER_KEY)) || reciter;
+      const r = await loadSurah(safe.number, selectedReciter); if (!mounted.current) return;
       setContent(r.data); setLastRead(safe.number); setLastReadAyah(resumeAyah);
       await writeJson(LAST_READ_KEY, { surah: safe.number, ayah: resumeAyah, updatedAt: new Date().toISOString() });
     } catch (e) { if (mounted.current) setError(e instanceof Error ? e.message : 'Sure açılamadı.'); }
