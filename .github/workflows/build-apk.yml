@@ -46,7 +46,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: DuaVakti-1.7.6-APK
+          name: DuaVakti-1.7.7-APK
           path: rebuild/android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 14
