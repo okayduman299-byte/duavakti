@@ -1,6 +1,6 @@
 {
   "name": "duavakti-rebuild",
-  "version": "1.7.0",
+  "version": "1.7.7",
   "private": true,
   "main": "index.ts",
   "scripts": {
@@ -25,6 +25,7 @@
     "expo-audio": "~57.0.0",
     "expo-location": "~57.0.2",
     "expo-notifications": "~57.0.3",
+    "expo-speech": "~57.0.2",
     "expo-task-manager": "~57.0.15",
     "react": "19.2.3",
     "react-native": "0.86.0"
