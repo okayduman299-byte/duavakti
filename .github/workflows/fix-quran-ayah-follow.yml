@@ -1,0 +1,32 @@
+name: Fix Quran ayah tracking
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch Quran progress
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('rebuild/src/screens/QuranScreen.tsx')
+          s = p.read_text(encoding='utf-8')
+          old = '''        {content && playableAyahs.length ? (\n          <View pointerEvents="none" style={styles.progressDock}>\n            <View style={styles.progressTrack}>\n              <View\n                style={[\n                  styles.progressFill,\n                  { width: `${surahProgress * 100}%` },\n                ]}\n              />\n            </View>\n          </View>\n        ) : null}'''
+          new = '''        {content && playableAyahs.length ? (\n          <View pointerEvents="none" style={styles.progressDock}>\n            <View style={{ marginBottom: 4, alignItems: "center" }}>\n              <Text style={{ fontSize: 10, fontWeight: "700", color: colors.textMuted }}>\n                {activeAyah ? `Okunan: ${activeAyah}. ayet` : "Ayet takibi hazır"}\n              </Text>\n            </View>\n            <View style={styles.progressTrack}>\n              {playableAyahs.map((ayah, index) => {\n                const isPast = activeAudioIndex !== null && index < activeAudioIndex;\n                const isCurrent = activeAudioIndex === index;\n                const width = `${100 / playableAyahs.length}%`;\n                const fillWidth = isPast\n                  ? "100%"\n                  : isCurrent\n                    ? `${currentAudioProgress * 100}%`\n                    : "0%";\n                return (\n                  <View key={`progress-${ayah.numberInSurah}`} style={{ width, height: 4, paddingRight: index === playableAyahs.length - 1 ? 0 : 1 }}>\n                    <View\n                      style={{\n                        height: 4,\n                        width: fillWidth,\n                        borderRadius: 2,\n                        backgroundColor: colors.accent,\n                      }}\n                    />\n                  </View>\n                );\n              })}\n            </View>\n          </View>\n        ) : null}'''
+          if old not in s:
+              raise SystemExit('Expected Quran progress block was not found')
+          p.write_text(s.replace(old, new), encoding='utf-8')
+          PY
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add rebuild/src/screens/QuranScreen.tsx
+          git commit -m "Track Quran playback by ayah" || exit 0
+          git push
