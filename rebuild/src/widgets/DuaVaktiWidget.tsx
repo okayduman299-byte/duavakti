@@ -18,7 +18,7 @@ export function DuaVaktiWidget({ city, timings, nextLabel, nextTime, remaining }
     <FlexWidget clickAction="OPEN_APP" accessibilityLabel={`DuaVakti ${city} namaz vakitleri`} style={{ height: 'match_parent', width: 'match_parent', backgroundColor: '#0B1711', borderRadius: 16, padding: 8, flexDirection: 'column' }}>
       <FlexWidget style={{ flexDirection: 'row', alignItems: 'center' }}>
         <TextWidget text="DuaVakti" style={{ fontSize: 14, fontWeight: 'bold', color: '#F5F7F5' }} />
-        <TextWidget text={` · ${city}`} style={{ flex: 1, fontSize: 8, color: '#8FB59D' }} truncate="END" />
+        <TextWidget text={` · ${city}`} style={{ width: 90, fontSize: 8, color: '#8FB59D' }} truncate="END" />
       </FlexWidget>
       <FlexWidget style={{ marginTop: 4, padding: 6, borderRadius: 10, backgroundColor: '#14271D', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <FlexWidget style={{ flexDirection: 'column', flex: 1 }}>
