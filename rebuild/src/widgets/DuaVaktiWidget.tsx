@@ -38,3 +38,5 @@ export function DuaVaktiWidget({ city, timings, nextLabel, nextTime, remaining }
     </FlexWidget>
   );
 }
+
+// Keep the widget source as the build trigger for the native Android widget.
