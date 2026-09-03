@@ -1,0 +1,58 @@
+name: Update Quran audio progress
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/modify-quran-progress.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  modify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add progress tracking UI
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('rebuild/src/screens/QuranScreen.tsx')
+          s = p.read_text()
+          old = '''    const wholeButtonLabel = playerStatus.playing\n      ? "Duraklat"\n      : finished\n        ? "Baştan dinle"\n        : (activeAudioIndex ?? 0) > 0 || playerStatus.currentTime > 0\n          ? "Devam et"\n          : "Tümünü dinle";'''
+          new = old + '''\n    const currentAudioProgress =\n      playerStatus.duration > 0\n        ? Math.min(1, Math.max(0, playerStatus.currentTime / playerStatus.duration))\n        : 0;\n    const surahProgress = playableAyahs.length\n      ? Math.min(1, Math.max(0, ((activeAudioIndex ?? 0) + currentAudioProgress) / playableAyahs.length))\n      : 0;'''
+          if old not in s:
+              raise SystemExit('label block not found')
+          s = s.replace(old, new, 1)
+          old = '''        ) : null}\n      </View>\n    );\n  }'''
+          new = '''        ) : null}\n        {content && playableAyahs.length ? (\n          <View pointerEvents="none" style={styles.progressDock}>\n            <View style={styles.progressTrack}>\n              <View style={[styles.progressFill, { width: `${surahProgress * 100}%` }]} />\n            </View>\n          </View>\n        ) : null}\n      </View>\n    );\n  }'''
+          if old not in s:
+              raise SystemExit('reader closing block not found')
+          s = s.replace(old, new, 1)
+          old = '''  surahAudioText: { color: colors.textMuted, fontSize: 12, marginTop: 4 },'''
+          new = '''  surahAudioText: { color: colors.textMuted, fontSize: 12, marginTop: 4 },\n  progressDock: {\n    position: "absolute",\n    left: 18,\n    right: 18,\n    bottom: 70,\n    height: 8,\n    justifyContent: "center",\n  },\n  progressTrack: {\n    height: 3,\n    borderRadius: 2,\n    backgroundColor: colors.border,\n    overflow: "hidden",\n  },\n  progressFill: {\n    height: 3,\n    borderRadius: 2,\n    backgroundColor: colors.accent,\n  },'''
+          if old not in s:
+              raise SystemExit('style anchor not found')
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+          PY
+      - name: Bump Android version
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('rebuild/app.json')
+          data = json.loads(p.read_text())
+          data['expo']['version'] = '1.7.7'
+          data['expo']['android']['versionCode'] = int(data['expo']['android']['versionCode']) + 1
+          p.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n')
+          PY
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add rebuild/src/screens/QuranScreen.tsx rebuild/app.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'Add Quran reading progress line'
+          git push
