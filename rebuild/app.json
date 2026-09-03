@@ -3,7 +3,7 @@
     "name": "DuaVakti",
     "slug": "duavakti",
     "owner": "okayduman299",
-    "version": "1.7.7",
+    "version": "1.8.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -16,7 +16,7 @@
     ],
     "android": {
       "package": "com.shaesdoes.duavakti",
-      "versionCode": 23,
+      "versionCode": 24,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#080A0D"
@@ -54,6 +54,23 @@
         {
           "color": "#8DB89F",
           "defaultChannel": "prayer-times"
+        }
+      ],
+      [
+        "react-native-android-widget",
+        {
+          "widgets": [
+            {
+              "name": "DuaVakti",
+              "label": "DuaVakti Vakitleri",
+              "minWidth": "250dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 2,
+              "description": "Sıradaki namazı ve günlük namaz vakitlerini gösterir.",
+              "updatePeriodMillis": 1800000
+            }
+          ]
         }
       ]
     ],
