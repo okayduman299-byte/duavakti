@@ -34,15 +34,8 @@ export function DuaVaktiWidget({ city, timings, nextLabel, nextTime, remaining }
       }}
     >
       <FlexWidget style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <TextWidget
-          text="DuaVakti"
-          style={{ fontSize: 17, fontWeight: 'bold', color: '#F5F7F5' }}
-        />
-        <TextWidget
-          text={city}
-          style={{ fontSize: 11, color: '#8FB59D' }}
-          truncate="END"
-        />
+        <TextWidget text="DuaVakti" style={{ fontSize: 17, fontWeight: 'bold', color: '#F5F7F5' }} />
+        <TextWidget text={city} style={{ fontSize: 11, color: '#8FB59D' }} truncate="END" />
       </FlexWidget>
 
       <FlexWidget
@@ -63,9 +56,9 @@ export function DuaVaktiWidget({ city, timings, nextLabel, nextTime, remaining }
         <TextWidget text={remaining} style={{ fontSize: 11, color: '#AABDB2' }} />
       </FlexWidget>
 
-      <FlexWidget style={{ marginTop: 8, flexDirection: 'row', justifyContent: 'space-between' }}>
+      <FlexWidget style={{ marginTop: 8, flexDirection: 'row' }}>
         {rows.map((row) => (
-          <FlexWidget key={row.key} style={{ alignItems: 'center', width: '19%' }}>
+          <FlexWidget key={row.key} style={{ flex: 1, alignItems: 'center' }}>
             <TextWidget text={row.label} style={{ fontSize: 8, color: '#7F9187', textAlign: 'center' }} />
             <TextWidget text={timings[row.key]} style={{ marginTop: 2, fontSize: 10, fontWeight: 'bold', color: '#DCE6DF', textAlign: 'center' }} />
           </FlexWidget>
