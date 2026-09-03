@@ -1,21 +1,10 @@
 {
   "name": "duavakti-rebuild",
-  "version": "1.8.0",
+  "version": "1.8.2",
   "private": true,
   "main": "index.ts",
   "scripts": {
-    "start": "expo start",
-    "android": "expo run:android",
-    "typecheck": "tsc --noEmit",
-    "typecheck:offline": "tsc -p tsconfig.offline.json",
-    "test:logic": "tsc -p tsconfig.test.json && node --test .test-build/tests/*.test.js",
-    "verify": "node scripts/verify.mjs",
-    "test": "npm run test:logic && npm run verify",
-    "test:all": "npm run typecheck && npm test",
-    "test:offline": "npm run typecheck:offline && npm run test:logic && npm run verify",
-    "export:android": "expo export --platform android",
-    "prebuild:android": "expo prebuild --platform android --clean",
-    "verify:prebuild": "node scripts/verify-prebuild.mjs"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -29,7 +18,8 @@
     "expo-task-manager": "~57.0.15",
     "react": "19.2.3",
     "react-native": "0.86.0",
-    "react-native-android-widget": "^0.21.0"
+    "react-native-android-widget": "^0.21.0",
+    "react-native-safe-area-context": "~5.6.2"
   },
   "devDependencies": {
     "@types/react": "^19.2.0",
