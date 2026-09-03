@@ -25,8 +25,7 @@
     "plugins": [
       ["expo-location", {"locationWhenInUsePermission": "DuaVakti, namaz vakitlerini bulunduğun konuma göre göstermek için konumunu kullanır.", "isAndroidBackgroundLocationEnabled": true, "isIosBackgroundLocationEnabled": true, "locationAlwaysAndWhenInUsePermission": "DuaVakti, uygulama kapalıyken bile bulunduğun konuma göre namaz vakitlerini otomatik güncellemek için konumunu kullanır."}],
       ["expo-audio", {"recordAudioAndroid": false, "enableBackgroundPlayback": false}],
-      ["expo-notifications", {"color": "#8DB89F", "defaultChannel": "prayer-times"}],
-      ["react-native-android-widget", {"widgets": [{"name": "DuaVakti", "label": "DuaVakti Vakitleri", "minWidth": "180dp", "minHeight": "90dp", "targetCellWidth": 3, "targetCellHeight": 2, "description": "Sıradaki namazı ve günlük namaz vakitlerini gösterir.", "updatePeriodMillis": 1800000}]}]
+      ["expo-notifications", {"color": "#8DB89F", "defaultChannel": "prayer-times"}]
     ],
     "extra": {"eas": {"projectId": "b6ba130a-5c98-4a7b-b815-1a87526bf083"}}
   }
