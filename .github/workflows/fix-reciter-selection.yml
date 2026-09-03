@@ -1,6 +1,9 @@
 name: Fix Quran reciter selection
 
 on:
+  push:
+    paths:
+      - 'rebuild/src/screens/QuranScreenV2.tsx'
   workflow_dispatch:
 
 permissions:
@@ -20,19 +23,16 @@ jobs:
           s = p.read_text()
           old = "const openSurah = async (summary: SurahSummary, resumeAyah = 0) => {"
           new = "const openSurah = async (summary: SurahSummary, resumeAyah = 0, audioEdition?: string) => {"
-          if old not in s:
-              raise SystemExit('openSurah signature not found')
-          s = s.replace(old, new, 1)
+          if old in s:
+              s = s.replace(old, new, 1)
           old = "const selectedReciter = (await readJson<string>(RECITER_KEY)) || reciter;"
           new = "const selectedReciter = audioEdition || (await readJson<string>(RECITER_KEY)) || reciter;"
-          if old not in s:
-              raise SystemExit('selectedReciter line not found')
-          s = s.replace(old, new, 1)
+          if old in s:
+              s = s.replace(old, new, 1)
           old = "if (selected) await openSurah(selected, lastReadAyah);"
           new = "if (selected) await openSurah(selected, lastReadAyah, item.identifier);"
-          if old not in s:
-              raise SystemExit('chooseReciter call not found')
-          s = s.replace(old, new, 1)
+          if old in s:
+              s = s.replace(old, new, 1)
           p.write_text(s)
           PY
       - name: Commit fix
