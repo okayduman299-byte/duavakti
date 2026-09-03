@@ -20,11 +20,52 @@ jobs:
           from pathlib import Path
           p = Path('rebuild/src/screens/QuranScreen.tsx')
           s = p.read_text(encoding='utf-8')
-          old = '''        {content && playableAyahs.length ? (\n          <View pointerEvents="none" style={styles.progressDock}>\n            <View style={styles.progressTrack}>\n              <View\n                style={[\n                  styles.progressFill,\n                  { width: `${surahProgress * 100}%` },\n                ]}\n              />\n            </View>\n          </View>\n        ) : null}'''
-          new = '''        {content && playableAyahs.length ? (\n          <View pointerEvents="none" style={styles.progressDock}>\n            <View style={{ marginBottom: 4, alignItems: "center" }}>\n              <Text style={{ fontSize: 10, fontWeight: "700", color: colors.textMuted }}>\n                {activeAyah ? `Okunan: ${activeAyah}. ayet` : "Ayet takibi hazır"}\n              </Text>\n            </View>\n            <View style={styles.progressTrack}>\n              {playableAyahs.map((ayah, index) => {\n                const isPast = activeAudioIndex !== null && index < activeAudioIndex;\n                const isCurrent = activeAudioIndex === index;\n                const width = `${100 / playableAyahs.length}%`;\n                const fillWidth = isPast\n                  ? "100%"\n                  : isCurrent\n                    ? `${currentAudioProgress * 100}%`\n                    : "0%";\n                return (\n                  <View key={`progress-${ayah.numberInSurah}`} style={{ width, height: 4, paddingRight: index === playableAyahs.length - 1 ? 0 : 1 }}>\n                    <View\n                      style={{\n                        height: 4,\n                        width: fillWidth,\n                        borderRadius: 2,\n                        backgroundColor: colors.accent,\n                      }}\n                    />\n                  </View>\n                );\n              })}\n            </View>\n          </View>\n        ) : null}'''
-          if old not in s:
-              raise SystemExit('Expected Quran progress block was not found')
-          p.write_text(s.replace(old, new), encoding='utf-8')
+          marker = '        {content && playableAyahs.length ? ('
+          start = s.find(marker)
+          if start < 0:
+              raise SystemExit('Quran progress start not found')
+          end_marker = '        ) : null}'
+          end = s.find(end_marker, start)
+          if end < 0:
+              raise SystemExit('Quran progress end not found')
+          end += len(end_marker)
+          old = s[start:end]
+          if 'styles.progressDock' not in old:
+              raise SystemExit('Unexpected Quran block; refusing unsafe patch')
+          new = '''        {content && playableAyahs.length ? (
+          <View pointerEvents="none" style={styles.progressDock}>
+            <View style={{ marginBottom: 4, alignItems: "center" }}>
+              <Text style={{ fontSize: 10, fontWeight: "700", color: colors.textMuted }}>
+                {activeAyah ? `Okunan: ${activeAyah}. ayet` : "Ayet takibi hazır"}
+              </Text>
+            </View>
+            <View style={styles.progressTrack}>
+              {playableAyahs.map((ayah, index) => {
+                const isPast = activeAudioIndex !== null && index < activeAudioIndex;
+                const isCurrent = activeAudioIndex === index;
+                const width = `${100 / playableAyahs.length}%`;
+                const fillWidth = isPast
+                  ? "100%"
+                  : isCurrent
+                    ? `${currentAudioProgress * 100}%`
+                    : "0%";
+                return (
+                  <View key={`progress-${ayah.numberInSurah}`} style={{ width, height: 4, paddingRight: index === playableAyahs.length - 1 ? 0 : 1 }}>
+                    <View
+                      style={{
+                        height: 4,
+                        width: fillWidth,
+                        borderRadius: 2,
+                        backgroundColor: colors.accent,
+                      }}
+                    />
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        ) : null}'''
+          p.write_text(s[:start] + new + s[end:], encoding='utf-8')
           PY
       - name: Commit patch
         run: |
