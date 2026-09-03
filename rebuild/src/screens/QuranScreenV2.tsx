@@ -57,11 +57,11 @@ export function QuranScreenV2({ preferences, updatePreferences }: { preferences:
 
   const stopAudio = () => { try { player.pause(); } catch {} autoContinue.current = false; setActiveAudioIndex(null); };
 
-  const openSurah = async (summary: SurahSummary, resumeAyah = 0) => {
+  const openSurah = async (summary: SurahSummary, resumeAyah = 0, audioEdition?: string) => {
     const safe = normalizeSurahSummary(summary); if (!safe) return setError('Sure bilgisi geçersiz.');
     stopAudio(); setSelected(safe); setContent(null); setReaderLoading(true); setError(null);
     try {
-      const selectedReciter = (await readJson<string>(RECITER_KEY)) || reciter;
+      const selectedReciter = audioEdition || (await readJson<string>(RECITER_KEY)) || reciter;
       const r = await loadSurah(safe.number, selectedReciter); if (!mounted.current) return;
       setContent(r.data); setLastRead(safe.number); setLastReadAyah(resumeAyah);
       await writeJson(LAST_READ_KEY, { surah: safe.number, ayah: resumeAyah, updatedAt: new Date().toISOString() });
@@ -69,7 +69,7 @@ export function QuranScreenV2({ preferences, updatePreferences }: { preferences:
     finally { if (mounted.current) setReaderLoading(false); }
   };
 
-  const chooseReciter = async (item: QuranReciter) => { setReciter(item.identifier); setReciterOpen(false); await writeJson(RECITER_KEY, item.identifier); if (selected) await openSurah(selected, lastReadAyah); };
+  const chooseReciter = async (item: QuranReciter) => { setReciter(item.identifier); setReciterOpen(false); await writeJson(RECITER_KEY, item.identifier); if (selected) await openSurah(selected, lastReadAyah, item.identifier); };
   const playAt = (index: number) => { const a = playable[index]; if (!a?.audio) return; setActiveAudioIndex(index); autoContinue.current = true; player.replace(a.audio); player.play(); setAudioError(null); };
   const toggleAyah = (item: AyahPair) => { try { const i = playable.findIndex((a) => a.numberInSurah === item.numberInSurah); if (i < 0) return; if (activeAudioIndex === i) { if (status.playing) player.pause(); else { autoContinue.current = true; player.play(); } } else playAt(i); } catch (e) { setAudioError(e instanceof Error ? e.message : 'Ses başlatılamadı.'); } };
 
