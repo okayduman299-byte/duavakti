@@ -11,52 +11,23 @@ const rows: Array<{ key: keyof PrayerTimes; label: string }> = [
   { key: 'Isha', label: 'Yatsı' },
 ];
 
-type Props = {
-  city: string;
-  timings: PrayerTimes;
-  nextLabel: string;
-  nextTime: string;
-  remaining: string;
-};
+type Props = { city: string; timings: PrayerTimes; nextLabel: string; nextTime: string; remaining: string };
 
 export function DuaVaktiWidget({ city, timings, nextLabel, nextTime, remaining }: Props) {
   return (
-    <FlexWidget
-      clickAction="OPEN_APP"
-      accessibilityLabel={`DuaVakti, ${city} namaz vakitleri`}
-      style={{
-        height: 'match_parent',
-        width: 'match_parent',
-        backgroundColor: '#0B1711',
-        borderRadius: 16,
-        padding: 8,
-        flexDirection: 'column',
-      }}
-    >
-      <FlexWidget style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+    <FlexWidget clickAction="OPEN_APP" accessibilityLabel={`DuaVakti ${city} namaz vakitleri`} style={{ height: 'match_parent', width: 'match_parent', backgroundColor: '#0B1711', borderRadius: 16, padding: 8, flexDirection: 'column' }}>
+      <FlexWidget style={{ flexDirection: 'row', alignItems: 'center' }}>
         <TextWidget text="DuaVakti" style={{ fontSize: 14, fontWeight: 'bold', color: '#F5F7F5' }} />
-        <TextWidget text={city} style={{ fontSize: 8, color: '#8FB59D' }} truncate="END" />
+        <TextWidget text={` · ${city}`} style={{ flex: 1, fontSize: 8, color: '#8FB59D' }} truncate="END" />
       </FlexWidget>
-
-      <FlexWidget
-        style={{
-          marginTop: 4,
-          padding: 6,
-          borderRadius: 10,
-          backgroundColor: '#14271D',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
+      <FlexWidget style={{ marginTop: 4, padding: 6, borderRadius: 10, backgroundColor: '#14271D', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <FlexWidget style={{ flexDirection: 'column', flex: 1 }}>
-          <TextWidget text={`Sıradaki: ${nextLabel}`} style={{ fontSize: 7, color: '#8FB59D' }} truncate="END" />
-          <TextWidget text={nextTime} style={{ fontSize: 19, fontWeight: 'bold', color: '#BCE2C9' }} />
+          <TextWidget text={`Sıradaki · ${nextLabel}`} style={{ fontSize: 7, color: '#8FB59D' }} truncate="END" />
+          <TextWidget text={nextTime} style={{ marginTop: 1, fontSize: 19, fontWeight: 'bold', color: '#BCE2C9' }} />
         </FlexWidget>
         <TextWidget text={remaining} style={{ fontSize: 8, color: '#AABDB2' }} truncate="END" />
       </FlexWidget>
-
-      <FlexWidget style={{ marginTop: 5, flexDirection: 'row', width: 'match_parent' }}>
+      <FlexWidget style={{ marginTop: 5, flexDirection: 'row', flex: 1, alignItems: 'center' }}>
         {rows.map((row) => (
           <FlexWidget key={row.key} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
             <TextWidget text={row.label} style={{ fontSize: 6, color: '#7F9187', textAlign: 'center' }} truncate="END" />
