@@ -9,7 +9,13 @@ import {
 import { readJson, writeJson } from './storage';
 
 const LIST_KEY = 'duavakti:quran:list:v2';
-const SURAH_PREFIX = 'duavakti:quran:surah:v2:';
+const SURAH_PREFIX = 'duavakti:quran:surah:v3:';
+
+export interface QuranReciter {
+  identifier: string;
+  name: string;
+  englishName: string;
+}
 
 export async function loadSurahList(): Promise<{ data: SurahSummary[]; source: 'network' | 'cache' }> {
   try {
@@ -25,11 +31,31 @@ export async function loadSurahList(): Promise<{ data: SurahSummary[]; source: '
   }
 }
 
-export async function loadSurah(number: number): Promise<{ data: SurahContent; source: 'network' | 'cache' }> {
-  const key = `${SURAH_PREFIX}${number}`;
+export async function loadReciters(): Promise<QuranReciter[]> {
+  const payload = await fetchJson('https://api.alquran.cloud/v1/edition/format/audio');
+  const data = Array.isArray((payload as { data?: unknown }).data) ? (payload as { data: Array<Record<string, unknown>> }).data : [];
+  const seen = new Set<string>();
+  return data
+    .filter((item) => item.type === 'versebyverse' && item.language === 'ar')
+    .map((item) => ({
+      identifier: typeof item.identifier === 'string' ? item.identifier : '',
+      name: typeof item.name === 'string' ? item.name : 'Kur’an okuyucusu',
+      englishName: typeof item.englishName === 'string' ? item.englishName : '',
+    }))
+    .filter((item) => {
+      if (!item.identifier || seen.has(item.identifier)) return false;
+      seen.add(item.identifier);
+      return true;
+    })
+    .slice(0, 18);
+}
+
+export async function loadSurah(number: number, audioEdition = 'ar.alafasy'): Promise<{ data: SurahContent; source: 'network' | 'cache' }> {
+  const safeEdition = audioEdition.replace(/[^a-zA-Z0-9._-]/g, '');
+  const key = `${SURAH_PREFIX}${number}:${safeEdition}`;
   try {
     const payload = await fetchJson(
-      `https://api.alquran.cloud/v1/surah/${number}/editions/quran-uthmani,tr.diyanet,ar.alafasy`,
+      `https://api.alquran.cloud/v1/surah/${number}/editions/quran-uthmani,tr.diyanet,${safeEdition}`,
     );
     const data = parseSurahEditionsPayload(payload);
     if (!data) throw new Error('Sure verisi çözümlenemedi');
