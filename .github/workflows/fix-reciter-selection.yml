@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'rebuild/src/screens/QuranScreenV2.tsx'
+      - '.github/workflows/fix-reciter-selection.yml'
   workflow_dispatch:
 
 permissions:
