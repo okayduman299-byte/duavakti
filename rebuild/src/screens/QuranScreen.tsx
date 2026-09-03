@@ -364,14 +364,13 @@ export function QuranScreen({
               {playableAyahs.map((ayah, index) => {
                 const isPast = activeAudioIndex !== null && index < activeAudioIndex;
                 const isCurrent = activeAudioIndex === index;
-                const width = `${100 / playableAyahs.length}%`;
-                const fillWidth = isPast
+                const fillWidth: `${number}%` = isPast
                   ? "100%"
                   : isCurrent
-                    ? `${currentAudioProgress * 100}%`
+                    ? `${currentAudioProgress * 100}%` as `${number}%`
                     : "0%";
                 return (
-                  <View key={`progress-${ayah.numberInSurah}`} style={{ width, height: 4, paddingRight: index === playableAyahs.length - 1 ? 0 : 1 }}>
+                  <View key={`progress-${ayah.numberInSurah}`} style={{ flex: 1, height: 4, paddingRight: index === playableAyahs.length - 1 ? 0 : 1 }}>
                     <View
                       style={{
                         height: 4,
