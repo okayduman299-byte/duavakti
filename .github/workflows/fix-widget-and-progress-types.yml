@@ -1,0 +1,65 @@
+name: Fix widget and Quran progress type errors
+
+on:
+  push:
+    paths:
+      - 'rebuild/src/screens/QuranScreen.tsx'
+      - 'rebuild/src/widgets/DuaVaktiWidget.tsx'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fix TypeScript styles
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('rebuild/src/screens/QuranScreen.tsx')
+          s = p.read_text()
+          old = '''                const width = `${100 / playableAyahs.length}%`;
+                const fillWidth = isPast
+                  ? "100%"
+                  : isCurrent
+                    ? `${currentAudioProgress * 100}%`
+                    : "0%";'''
+          new = '''                const fillWidth: `${number}%` = isPast
+                  ? "100%"
+                  : isCurrent
+                    ? `${currentAudioProgress * 100}%` as `${number}%`
+                    : "0%";'''
+          if old not in s:
+              raise SystemExit('Quran progress block not found')
+          s = s.replace(old, new, 1)
+          old = '''<View key={`progress-${ayah.numberInSurah}`} style={{ width, height: 4, paddingRight: index === playableAyahs.length - 1 ? 0 : 1 }}>'''
+          new = '''<View key={`progress-${ayah.numberInSurah}`} style={{ flex: 1, height: 4, paddingRight: index === playableAyahs.length - 1 ? 0 : 1 }}>'''
+          if old not in s:
+              raise SystemExit('Quran progress container not found')
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+
+          p = Path('rebuild/src/widgets/DuaVaktiWidget.tsx')
+          s = p.read_text()
+          old = '<TextWidget text={` · ${city}`} style={{ flex: 1, fontSize: 8, color: \'#8FB59D\' }} truncate="END" />'
+          new = '<TextWidget text={` · ${city}`} style={{ width: 90, fontSize: 8, color: \'#8FB59D\' }} truncate="END" />'
+          if old not in s:
+              raise SystemExit('Widget city TextWidget style not found')
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+          PY
+
+      - name: Commit fixes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add rebuild/src/screens/QuranScreen.tsx rebuild/src/widgets/DuaVaktiWidget.tsx
+          git diff --cached --quiet && exit 0
+          git commit -m "Fix widget and Quran progress type errors"
+          git push
