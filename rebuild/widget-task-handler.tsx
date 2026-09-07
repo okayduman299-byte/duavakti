@@ -4,14 +4,13 @@ import { DuaVaktiWidget } from './src/widgets/DuaVaktiWidget';
 import { loadPrayerTimes } from './src/lib/prayerService';
 import { getNextPrayer } from './src/lib/prayer';
 import { formatCountdown } from './src/lib/time';
-import { readJson } from './src/lib/storage';
+import { readJson, writeJson } from './src/lib/storage';
 import type { AppPreferences, PrayerTimes } from './src/types';
 
 const PREFS_KEY = 'duavakti:preferences:v1';
 const CACHE_KEY = 'duavakti:widget-cache:v1';
 const DEFAULT_CITY = 'Muradiye';
 const EMPTY_TIMINGS: PrayerTimes = { Fajr: '--:--', Dhuhr: '--:--', Asr: '--:--', Maghrib: '--:--', Isha: '--:--' };
-
 type WidgetCache = { city: string; timings: PrayerTimes; savedAt: number };
 
 function renderWidget(renderWidgetFn: (widget: React.ReactElement) => void, city: string, timings: PrayerTimes) {
@@ -22,19 +21,20 @@ function renderWidget(renderWidgetFn: (widget: React.ReactElement) => void, city
 
 export async function widgetTaskHandler(props: WidgetTaskHandlerProps) {
   if (props.widgetInfo.widgetName !== 'DuaVakti') return;
-  if (props.widgetAction !== 'WIDGET_ADDED' && props.widgetAction !== 'WIDGET_UPDATE' && props.widgetAction !== 'WIDGET_RESIZED') return;
+  if (!['WIDGET_ADDED', 'WIDGET_UPDATE', 'WIDGET_RESIZED'].includes(props.widgetAction)) return;
 
   const stored = await readJson<AppPreferences>(PREFS_KEY);
   const cached = await readJson<WidgetCache>(CACHE_KEY);
   const city = stored?.city || cached?.city || DEFAULT_CITY;
 
-  // Show something immediately, then replace it with fresh data if network works.
+  // Always render immediately from local data so Xiaomi does not show an empty widget.
   renderWidget(props.renderWidget, city, cached?.timings || EMPTY_TIMINGS);
 
   try {
     const data = await loadPrayerTimes(new Date(), { mode: 'city', label: city, city, country: stored?.country || 'Turkey' });
+    await writeJson<WidgetCache>(CACHE_KEY, { city, timings: data.timings, savedAt: Date.now() });
     renderWidget(props.renderWidget, city, data.timings);
   } catch {
-    // Keep cached/placeholder content instead of leaving the widget blank.
+    // Cached data remains visible when the background request is unavailable.
   }
 }
