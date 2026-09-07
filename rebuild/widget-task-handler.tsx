@@ -1,10 +1,9 @@
 import React from 'react';
 import type { WidgetTaskHandlerProps } from 'react-native-android-widget';
 import { DuaVaktiWidget } from './src/widgets/DuaVaktiWidget';
-import { loadPrayerTimes } from './src/lib/prayerService';
 import { getNextPrayer } from './src/lib/prayer';
 import { formatCountdown } from './src/lib/time';
-import { readJson, writeJson } from './src/lib/storage';
+import { readJson } from './src/lib/storage';
 import type { AppPreferences, PrayerTimes } from './src/types';
 
 const PREFS_KEY = 'duavakti:preferences:v1';
@@ -27,14 +26,7 @@ export async function widgetTaskHandler(props: WidgetTaskHandlerProps) {
   const cached = await readJson<WidgetCache>(CACHE_KEY);
   const city = stored?.city || cached?.city || DEFAULT_CITY;
 
-  // Always render immediately from local data so Xiaomi does not show an empty widget.
+  // Xiaomi/Android can restrict background network access. The widget renders
+  // only from the local cache; the foreground app refreshes this cache.
   renderWidget(props.renderWidget, city, cached?.timings || EMPTY_TIMINGS);
-
-  try {
-    const data = await loadPrayerTimes(new Date(), { mode: 'city', label: city, city, country: stored?.country || 'Turkey' });
-    await writeJson<WidgetCache>(CACHE_KEY, { city, timings: data.timings, savedAt: Date.now() });
-    renderWidget(props.renderWidget, city, data.timings);
-  } catch {
-    // Cached data remains visible when the background request is unavailable.
-  }
 }
