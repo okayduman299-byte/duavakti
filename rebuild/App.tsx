@@ -6,6 +6,7 @@ import { requestPinWidget, requestWidgetUpdate } from 'react-native-android-widg
 import { loadPrayerTimes } from './src/lib/prayerService';
 import { getNextPrayer } from './src/lib/prayer';
 import { formatCountdown } from './src/lib/time';
+import { DuaVaktiWidget } from './src/widgets/DuaVaktiWidget';
 import { QuranScreenV2 as QuranScreen } from './src/screens/QuranScreenV2';
 import type { AppPreferences, PrayerApiResult, PrayerKey, PrayerTimes } from './src/types';
 
@@ -25,7 +26,19 @@ type WidgetCache = { city: string; timings: PrayerTimes; savedAt: number };
 
 async function saveWidgetCache(selectedCity: string, timings: PrayerTimes) {
   await AsyncStorage.setItem(WIDGET_CACHE_KEY, JSON.stringify({ city: selectedCity, timings, savedAt: Date.now() } satisfies WidgetCache));
-  try { await requestWidgetUpdate({ widgetName: 'DuaVakti' }); } catch { /* launcher may not have a widget yet */ }
+  try {
+    const cached: WidgetCache = { city: selectedCity, timings, savedAt: Date.now() };
+    await requestWidgetUpdate({
+      widgetName: 'DuaVakti',
+      renderWidget: () => {
+        const next = getNextPrayer(new Date(), cached.timings);
+        const remaining = next.target.getTime() > Date.now() ? formatCountdown(next.target.getTime() - Date.now()) : 'Vakit';
+        return <DuaVaktiWidget city={cached.city} timings={cached.timings} nextLabel={next.label} nextTime={next.time} remaining={remaining} />;
+      },
+    });
+  } catch {
+    // Launcher may not have a widget yet.
+  }
 }
 
 function AppContent() {
